@@ -13,16 +13,14 @@ public sealed class ParserWorker(
 
     Task IHostedService.StartAsync(CancellationToken cancellationToken)
     {
-        logger.LogInformation("[+] Start!");
-
+        // logger.LogInformation("[+] Start!");
         appLifetime.ApplicationStarted.Register(OnStarted);
-
         return Task.CompletedTask;
     }
 
     Task IHostedService.StopAsync(CancellationToken cancellationToken)
     {
-        logger.LogInformation("[+] Stop!");
+        // logger.LogInformation("[+] Stop!");
         return Task.CompletedTask;
     }
 

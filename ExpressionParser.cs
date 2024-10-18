@@ -9,10 +9,14 @@ namespace SyntaxParserTool;
 static class ExpressionParser
 {
     // 構文解析処理
-    public static Expression<Func<double>> ParseExpression(string text)
+    public static Expression<Func<decimal>> ParseExpression(string text)
     {
         return Lambda.Parse(text);
     }
+
+    // 終端記号の定義
+
+    static readonly Parser<string> Identifier = Parse.Letter.AtLeastOnce().Text().Token();
 
     // 非終端記号の定義
 
@@ -31,7 +35,7 @@ static class ExpressionParser
     // BNFの定義
 
     static readonly Parser<Expression> Function =
-        from name in Parse.Letter.AtLeastOnce().Text()
+        from name in Identifier
         from lparen in Parse.Char('(')
         from expr in Parse.Ref(() => Expr).DelimitedBy(Parse.Char(',').Token())
         from rparen in Parse.Char(')')
@@ -49,7 +53,7 @@ static class ExpressionParser
 
     static readonly Parser<Expression> Constant =
         Parse.Decimal
-        .Select(x => Expression.Constant(double.Parse(x)))
+        .Select(x => Expression.Constant(decimal.Parse(x)))
         .Named("number");
 
     static readonly Parser<Expression> Factor =
@@ -76,7 +80,7 @@ static class ExpressionParser
 
     // 構文解析処理
 
-    static readonly Parser<Expression<Func<double>>> Lambda =
-        Expr.End().Select(body => Expression.Lambda<Func<double>>(body));
+    static readonly Parser<Expression<Func<decimal>>> Lambda =
+        Expr.End().Select(body => Expression.Lambda<Func<decimal>>(body));
 
 }
