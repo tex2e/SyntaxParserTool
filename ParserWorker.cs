@@ -1,8 +1,10 @@
-namespace SyntaxParserTool;
 
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
+using Sprache;
+
+namespace SyntaxParserTool;
 
 public sealed class ParserWorker(
     ILogger<ParserWorker> logger, 
@@ -45,9 +47,14 @@ public sealed class ParserWorker(
             switch (parsertype)
             {
                 case "expr":
-                    var parsed = ExpressionParser.ParseExpression(input);
+                    var parsed = SyntaxParserTool.Expr.ExpressionParser.ParseExpression(input);
                     logger.LogInformation("parsed: {}", parsed);
                     logger.LogInformation("value: {}", parsed.Compile()());
+                    break;
+
+                case "xml":
+                    var parsedXml = SyntaxParserTool.Xml.XmlParser.Document.Parse(input);
+                    logger.LogInformation("parsed: {}", parsedXml);
                     break;
             }
             
