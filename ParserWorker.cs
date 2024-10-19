@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Sprache;
+using System.Text;
 
 namespace SyntaxParserTool;
 
@@ -32,17 +33,26 @@ public sealed class ParserWorker(
     {
         try
         {
-            // logger.LogInformation($"inputfile: {config["input"]}");
 
-            string inputfile = config["input"] ?? "";
-            if (string.IsNullOrEmpty(inputfile))
-                throw new ArgumentNullException(nameof(inputfile));
-            string input = File.ReadAllText(inputfile);
-            // logger.LogInformation("input: {input}", input);
 
-            string parsertype = config["type"] ?? "";
-            if (string.IsNullOrEmpty(parsertype))
-                throw new ArgumentNullException(nameof(parsertype));
+            string inputfile = config["input"] ?? throw new ArgumentNullException("config.input");
+            string parsertype = config["type"] ?? throw new ArgumentNullException("config.type");
+            string inputencoding = config["encode"] ?? "";
+
+            string input;
+            switch (inputencoding)
+            {
+                case "sjis":
+                    Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+                    input = File.ReadAllText(inputfile, Encoding.GetEncoding("Shift_JIS"));
+                    break;
+                default:
+                    input = File.ReadAllText(inputfile);
+                    break;
+            }
+
+            logger.LogInformation("inputfile: {}", inputfile);
+            logger.LogInformation("inputencoding: {}", inputencoding);
 
             switch (parsertype)
             {
@@ -56,6 +66,29 @@ public sealed class ParserWorker(
                     var parsedXml = SyntaxParserTool.Xml.XmlParser.Document.Parse(input);
                     logger.LogInformation("parsed: {}", parsedXml);
                     break;
+
+                case "csv":
+                    var parsedCsv = SyntaxParserTool.Csv.CsvParser.Csv.Parse(input);
+                    var parsedCsvString = new StringBuilder();
+                    foreach (var line in parsedCsv)
+                    {
+                        parsedCsvString.AppendJoin(", ", line.ToArray()).Append(Environment.NewLine);
+                    }
+                    logger.LogInformation("{}", parsedCsvString);
+                    break;
+
+                case "mydsl":
+                    var parsedMyDSL = SyntaxParserTool.MyDSL.MyDSLParser.Questionnaire.Parse(input);
+                    logger.LogInformation("parsed: {}", parsedMyDSL);
+                    break;
+
+                case "bat":
+                    var parsedWindowsBat = SyntaxParserTool.WindowsBatch.WindowsBatchParser.JCL.Parse(input);
+                    Console.WriteLine(parsedWindowsBat);
+                    break;
+
+                default:
+                    throw new NotImplementedException("選択したファイル種別は構文解析できません！");
             }
             
 
@@ -67,3 +100,7 @@ public sealed class ParserWorker(
     }
 
 }
+
+// Usage:
+//   dotnet run --input InputFiles/TestExpr.txt --type expr
+//   dotnet run --input InputFiles/TestFile.xml --type xml
