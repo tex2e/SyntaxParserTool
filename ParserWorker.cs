@@ -83,7 +83,7 @@ public sealed class ParserWorker(
                     break;
 
                 case "bat":
-                    var parsedWindowsBat = SyntaxParserTool.WindowsBatch.WindowsBatchParser.JCL.Parse(input);
+                    var parsedWindowsBat = SyntaxParserTool.WindowsBatch.WindowsBatchParser.BatchFile.Parse(input);
                     Console.WriteLine(parsedWindowsBat);
                     break;
 

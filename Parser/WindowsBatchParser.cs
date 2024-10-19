@@ -4,63 +4,19 @@ using Sprache;
 
 namespace SyntaxParserTool.WindowsBatch;
 
-public class JCL(IEnumerable<Statement>? statements)
-{
-    public override string ToString()
-    {
-        var sb = new StringBuilder();
-        if (statements is not null)
-        {
-            foreach (var statement in statements)
-            {
-                sb.AppendLine(statement.ToString());
-            }
-        }
-        return sb.ToString();
-    }
-}
-
-public interface Statement
-{
-    public abstract string ToString();
-
-}
-
-public class Comment(string Text) : Statement
-{
-    public override string ToString()
-    {
-        return $"<rem text={{{Text}}}>";
-    }
-}
-
-public class Label(string Text) : Statement
-{
-    public override string ToString()
-    {
-        return $"<label text={{{Text}}}>";
-    }
-}
-
-public class SetVariable(string Name, string Value) : Statement
-{
-    public override string ToString()
-    {
-        return $"<setvariable name={{{Name}}} value={{{Value}}}";
-    }
-}
-
 public static class WindowsBatchParser
 {
-    // 識別子の定義
+    /// <summary>
+    /// 識別子の構文
+    /// </summary>
     public static Parser<string> identifierRule =
         (from first in Parse.Letter.Once()
         from rest in Parse.LetterOrDigit.XOr(Parse.Char('_')).Many()
         select new string(first.Concat(rest).ToArray())).Named("identifier");
 
-    // -------------------------------------------------------------------------
-    // コメントの定義
-
+    /// <summary>
+    /// 単行コメントの構文
+    /// </summary>
     public static Parser<string> commentRule =
         (from directive in Parse.IgnoreCase("REM").Text()
         from spaces in Parse.WhiteSpace
@@ -68,21 +24,25 @@ public static class WindowsBatchParser
         from newline in Parse.LineTerminator
         select comment).Named("comment");
 
+    /// <summary>
+    /// 複数行コメントの構文
+    /// </summary>
     public static Parser<Comment> commentsRule =
         (from comments in commentRule.Many()
         select new Comment(string.Join("\n", comments))).Named("comments");
 
-    // -------------------------------------------------------------------------
-    // ラベルの定義
-
+    /// <summary>
+    /// GOTO用のラベルの構文
+    /// </summary>
     public static Parser<Label> labelRule =
         (from leading in Parse.WhiteSpace.Many()
         from mark in Parse.Char(':')
         from label in identifierRule
         select new Label(label)).Named("label");
 
-    // -------------------------------------------------------------------------
-    // 変数代入の定義
+    /// <summary>
+    /// 変数への値代入の構文
+    /// </summary>
     public static Parser<SetVariable> setVariableRule =
         (from set in Parse.IgnoreCase("SET")
         from _ in Parse.WhiteSpace.AtLeastOnce()
@@ -91,15 +51,18 @@ public static class WindowsBatchParser
         from value in Parse.CharExcept("\r\n").Many().Text()
         select new SetVariable(name, value)).Named("setvariable");
 
-    // -------------------------------------------------------------------------
-    // 行の定義
-
+    /// <summary>
+    /// ステートメントの構文
+    /// </summary>
     public static Parser<Statement> statementRule =
         commentsRule.Token<Statement>()
         .Or(labelRule.Token())
         .Or(setVariableRule.Token());
 
-    public static readonly Parser<JCL> JCL =
+    /// <summary>
+    /// バッチファイルの構文
+    /// </summary>
+    public static readonly Parser<BatchFile> BatchFile =
         from statements in statementRule.Many().End()
-        select new JCL(statements);
+        select new BatchFile(statements);
 }
