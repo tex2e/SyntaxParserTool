@@ -21,8 +21,8 @@ public class UnitTestWindowsBatchParser
         BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
         var statements = result.Statements.ToArray();
         Assert.True(statements.Length >= 1);
-        Assert.True(statements[0] is Comment);
-        Assert.Equal("Test Comment\nコメントテスト", ((Comment)statements[0]).Text);
+        Assert.True(statements[0] is NodeComment);
+        Assert.Equal("Test Comment\nコメントテスト", ((NodeComment)statements[0]).Text);
     }
 
     [Fact]
@@ -35,12 +35,12 @@ public class UnitTestWindowsBatchParser
         BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
         var statements = result.Statements.ToArray();
         Assert.True(statements.Length >= 2);
-        Assert.True(statements[0] is SetVariable);
-        Assert.True(statements[1] is SetVariable);
-        SetVariable statement1 = (SetVariable)statements[0];
+        Assert.True(statements[0] is NodeSetVariable);
+        Assert.True(statements[1] is NodeSetVariable);
+        NodeSetVariable statement1 = (NodeSetVariable)statements[0];
         Assert.Equal("i", statement1.Name);
         Assert.Equal("1", statement1.Value);
-        SetVariable statement2 = (SetVariable)statements[1];
+        NodeSetVariable statement2 = (NodeSetVariable)statements[1];
         Assert.Equal("sample_variable123", statement2.Name);
         Assert.Equal("456", statement2.Value);
     }
@@ -54,8 +54,8 @@ public class UnitTestWindowsBatchParser
         BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
         var statements = result.Statements.ToArray();
         Assert.True(statements.Length >= 1);
-        Assert.True(statements[0] is Label);
-        Label statement1 = (Label)statements[0];
+        Assert.True(statements[0] is NodeLabel);
+        NodeLabel statement1 = (NodeLabel)statements[0];
         Assert.Equal("Label_test123", statement1.Name);
     }
 }

@@ -38,9 +38,9 @@ public static class WindowsBatchParser
     ///   REM コメント2行目
     ///   REM ...
     /// </example>
-    public static readonly Parser<Comment> commentsRule =
+    public static readonly Parser<NodeComment> commentsRule =
         from comments in commentRule.Many()
-        select new Comment(string.Join("\n", comments));
+        select new NodeComment(string.Join("\n", comments));
 
     /// <summary>
     /// GOTO用のラベルの構文
@@ -48,10 +48,10 @@ public static class WindowsBatchParser
     /// <example>
     ///   :LABEL_EXIT
     /// </example>
-    public static readonly Parser<Label> labelRule =
+    public static readonly Parser<NodeLabel> labelRule =
         (from mark in Parse.Char(':')
         from label in identifierRule
-        select new Label(label)).Named("label");
+        select new NodeLabel(label)).Named("label");
 
     /// <summary>
     /// 変数への値代入の構文
@@ -59,13 +59,13 @@ public static class WindowsBatchParser
     /// <example>
     ///   SET COUNT=123
     /// </example>
-    public static readonly Parser<SetVariable> setVariableRule =
+    public static readonly Parser<NodeSetVariable> setVariableRule =
         from set in Parse.IgnoreCase("SET")
         from _ in Parse.WhiteSpace.AtLeastOnce()
         from name in identifierRule
         from eq in Parse.Char('=')
         from value in Parse.CharExcept("\r\n").Many().Text()
-        select new SetVariable(name, value);
+        select new NodeSetVariable(name, value);
 
     /// <summary>
     /// ダブルクオーテーションで囲まれた文字列の構文
@@ -98,7 +98,7 @@ public static class WindowsBatchParser
         from left in Parse.CharExcept(char.IsWhiteSpace, "leftLiteral").XMany().Text().Token()
         from ope in Parse.String("==").Text()
         from right in Parse.CharExcept(char.IsWhiteSpace, "rightLiteral").XMany().Text().Token()
-        select new Comparison(left, ope, right);
+        select new NodeComparison(left, ope, right);
 
     /// <summary>
     /// IF EXISTの構文
@@ -109,7 +109,7 @@ public static class WindowsBatchParser
     public static readonly Parser<ICondition> existsRule =
         from keywordExists in Parse.String("EXIST").Token()
         from path in quotedValue.XOr(literalValue)
-        select new Exists(path);
+        select new NodeExists(path);
 
     /// <summary>
     /// IFの条件文の構文
@@ -137,7 +137,7 @@ public static class WindowsBatchParser
     ///     statements
     ///   )
     /// </example>
-    public static readonly Parser<IfStatement> ifStatementRule =
+    public static readonly Parser<NodeIfStatement> ifStatementRule =
         from set in Parse.IgnoreCase("IF")
         from cond in notConditionRule.Token().Or(conditionRule.Token())  // 条件文
         // 条件がTrueのときのブロック
@@ -160,7 +160,7 @@ public static class WindowsBatchParser
             )
             select whenFalseStatements
         ).Optional()
-        select new IfStatement(cond, whenTrueStatements, whenFalseStatements.GetOrDefault());
+        select new NodeIfStatement(cond, whenTrueStatements, whenFalseStatements.GetOrDefault());
 
     /// <summary>
     /// ステートメントの構文
