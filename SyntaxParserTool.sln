@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.002.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyntaxParserTool", "SyntaxParserTool.csproj", "{8C52CE2F-A084-4E90-BC93-FDC2AD196A51}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Parser", "Parser\Parser.csproj", "{8C52CE2F-A084-4E90-BC93-FDC2AD196A51}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Parser.Tests", "Parser.Tests\Parser.Tests.csproj", "{89309D69-3D92-453F-99F1-6C9B48EF3DFF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{8C52CE2F-A084-4E90-BC93-FDC2AD196A51}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8C52CE2F-A084-4E90-BC93-FDC2AD196A51}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8C52CE2F-A084-4E90-BC93-FDC2AD196A51}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89309D69-3D92-453F-99F1-6C9B48EF3DFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89309D69-3D92-453F-99F1-6C9B48EF3DFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89309D69-3D92-453F-99F1-6C9B48EF3DFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89309D69-3D92-453F-99F1-6C9B48EF3DFF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

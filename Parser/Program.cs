@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
-using SyntaxParserTool;
+using SyntaxParserTool.Parser;
 
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 builder.Configuration.AddCommandLine(args); // コマンドライン引数を設定に追加する

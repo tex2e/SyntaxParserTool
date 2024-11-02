@@ -5,7 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Sprache;
 using System.Text;
 
-namespace SyntaxParserTool;
+namespace SyntaxParserTool.Parser;
 
 public sealed class ParserWorker(
     ILogger<ParserWorker> logger, 
@@ -57,18 +57,18 @@ public sealed class ParserWorker(
             switch (parsertype)
             {
                 case "expr":
-                    var parsed = SyntaxParserTool.Expr.ExpressionParser.ParseExpression(input);
+                    var parsed = SyntaxParserTool.Parser.Expr.ExpressionParser.ParseExpression(input);
                     logger.LogInformation("parsed: {}", parsed);
                     logger.LogInformation("value: {}", parsed.Compile()());
                     break;
 
                 case "xml":
-                    var parsedXml = SyntaxParserTool.Xml.XmlParser.Document.Parse(input);
+                    var parsedXml = SyntaxParserTool.Parser.Xml.XmlParser.Document.Parse(input);
                     logger.LogInformation("parsed: {}", parsedXml);
                     break;
 
                 case "csv":
-                    var parsedCsv = SyntaxParserTool.Csv.CsvParser.Csv.Parse(input);
+                    var parsedCsv = SyntaxParserTool.Parser.Csv.CsvParser.Csv.Parse(input);
                     var parsedCsvString = new StringBuilder();
                     foreach (var line in parsedCsv)
                     {
@@ -78,12 +78,12 @@ public sealed class ParserWorker(
                     break;
 
                 case "mydsl":
-                    var parsedMyDSL = SyntaxParserTool.MyDSL.MyDSLParser.Questionnaire.Parse(input);
+                    var parsedMyDSL = SyntaxParserTool.Parser.MyDSL.MyDSLParser.Questionnaire.Parse(input);
                     logger.LogInformation("parsed: {}", parsedMyDSL);
                     break;
 
                 case "bat":
-                    var parsedWindowsBat = SyntaxParserTool.WindowsBatch.WindowsBatchParser.BatchFile.Parse(input);
+                    var parsedWindowsBat = SyntaxParserTool.Parser.WindowsBatch.WindowsBatchParser.BatchFile.Parse(input);
                     Console.WriteLine(parsedWindowsBat);
                     break;
 

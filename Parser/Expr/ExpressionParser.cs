@@ -1,10 +1,9 @@
-using System;
-using System.Linq;
+
 using System.Linq.Expressions;
 using System.Reflection;
 using Sprache;
 
-namespace SyntaxParserTool.Expr;
+namespace SyntaxParserTool.Parser.Expr;
 
 static class ExpressionParser
 {

@@ -1,7 +1,7 @@
 
 using Sprache;
 
-namespace SyntaxParserTool.MyDSL;
+namespace SyntaxParserTool.Parser.MyDSL;
 
 public class Questionnaire
 {

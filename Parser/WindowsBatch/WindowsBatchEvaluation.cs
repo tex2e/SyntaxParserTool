@@ -2,7 +2,7 @@
 using System.CodeDom.Compiler;
 using System.Text;
 
-namespace SyntaxParserTool.WindowsBatch;
+namespace SyntaxParserTool.Parser.WindowsBatch;
 
 public class BatchFile(IEnumerable<IStatement>? statements)
 {

@@ -5,7 +5,7 @@
 using System.Text;
 using Sprache;
 
-namespace SyntaxParserTool.WindowsBatch;
+namespace SyntaxParserTool.Parser.WindowsBatch;
 
 public static class WindowsBatchParser
 {
