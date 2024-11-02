@@ -31,18 +31,23 @@ public class UnitTestWindowsBatchParser
         string input = """
         set i=1
         SET sample_variable123=456
+        SET datetime=%YYYY%/%MM%/%DD% %HH%:%MM%:%SS%
         """;
         BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
         var statements = result.Statements.ToArray();
-        Assert.True(statements.Length >= 2);
+        Assert.True(statements.Length >= 3);
         Assert.True(statements[0] is NodeSetVariable);
         Assert.True(statements[1] is NodeSetVariable);
+        Assert.True(statements[2] is NodeSetVariable);
         NodeSetVariable statement1 = (NodeSetVariable)statements[0];
         Assert.Equal("i", statement1.Name);
         Assert.Equal("1", statement1.Value);
         NodeSetVariable statement2 = (NodeSetVariable)statements[1];
         Assert.Equal("sample_variable123", statement2.Name);
         Assert.Equal("456", statement2.Value);
+        NodeSetVariable statement3 = (NodeSetVariable)statements[2];
+        Assert.Equal("datetime", statement3.Name);
+        Assert.Equal("%YYYY%/%MM%/%DD% %HH%:%MM%:%SS%", statement3.Value);
     }
 
     [Fact]
@@ -58,4 +63,24 @@ public class UnitTestWindowsBatchParser
         NodeLabel statement1 = (NodeLabel)statements[0];
         Assert.Equal("Label_test123", statement1.Name);
     }
+
+    [Fact]
+    public void ParseAtMark()
+    {
+        string input = """
+        @rem test
+        @set a=1
+        """;
+        BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
+        var statements = result.Statements.ToArray();
+        Assert.True(statements.Length >= 2);
+        Assert.True(statements[0] is NodeComment);
+        Assert.True(statements[1] is NodeSetVariable);
+        NodeComment statement1 = (NodeComment)statements[0];
+        Assert.Equal("test", statement1.Text);
+        NodeSetVariable statement2 = (NodeSetVariable)statements[1];
+        Assert.Equal("a", statement2.Name);
+        Assert.Equal("1", statement2.Value);
+    }
+
 }

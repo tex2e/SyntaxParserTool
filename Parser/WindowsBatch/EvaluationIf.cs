@@ -61,15 +61,19 @@ public class NodeComparison(
 /// <param name="whenTrueStatements">Trueのときのブロック</param>
 /// <param name="whenFalseStatements">Falseのときのブロック</param>
 public class NodeIfStatement(
-    ICondition Cond, 
+    ICondition condition, 
     IEnumerable<IStatement> whenTrueStatements, 
     IEnumerable<IStatement> whenFalseStatements) : IStatement
 {
+    public ICondition Condition => condition;
+    public IEnumerable<IStatement> WhenTrueStatements => whenTrueStatements;
+    public IEnumerable<IStatement> WhenFalseStatements => whenFalseStatements;
+
     public override string ToString()
     {
         using var output = new StringWriter();
         using var writer = new IndentedTextWriter(output);
-        writer.WriteLine($"<if condition={{{Cond}}}");
+        writer.WriteLine($"<if condition={{{condition}}}");
         writer.WriteLine($"whenTrueStatements={{");
         writer.Indent++;
         foreach (var statement in whenTrueStatements) {

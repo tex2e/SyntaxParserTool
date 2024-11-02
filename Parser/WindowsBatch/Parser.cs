@@ -96,7 +96,14 @@ public static class WindowsBatchParser
     /// </example>
     public static readonly Parser<ICondition> comparisonRule =
         from left in Parse.CharExcept(char.IsWhiteSpace, "leftLiteral").XMany().Text().Token()
-        from ope in Parse.String("==").Text()
+        from ope in Parse.String("==")
+                    .Or(Parse.IgnoreCase("EQU"))
+                    .Or(Parse.IgnoreCase("NEQ"))
+                    .Or(Parse.IgnoreCase("GTR"))
+                    .Or(Parse.IgnoreCase("LSS"))
+                    .Or(Parse.IgnoreCase("LEQ"))
+                    .Or(Parse.IgnoreCase("GEQ"))
+                    .Text()
         from right in Parse.CharExcept(char.IsWhiteSpace, "rightLiteral").XMany().Text().Token()
         select new NodeComparison(left, ope, right);
 
@@ -115,12 +122,14 @@ public static class WindowsBatchParser
     /// IFの条件文の構文
     /// </summary>
     public static readonly Parser<ICondition> conditionRule =
-        existsRule
-        .XOr(comparisonRule);
+        existsRule.XOr(comparisonRule);
 
     /// <summary>
     /// IFの条件文の否定時の構文
     /// </summary>
+    /// <example>
+    ///   IF NOT EXIST 〜
+    /// </example>
     public static readonly Parser<ICondition> notConditionRule =
         from not in Parse.IgnoreCase("NOT")
         from _ in Parse.WhiteSpace.AtLeastOnce()
@@ -139,10 +148,11 @@ public static class WindowsBatchParser
     /// </example>
     public static readonly Parser<NodeIfStatement> ifStatementRule =
         from set in Parse.IgnoreCase("IF")
-        from cond in notConditionRule.Token().Or(conditionRule.Token())  // 条件文
+        // 条件文
+        from cond in notConditionRule.Token().Or(conditionRule.Token())
         // 条件がTrueのときのブロック
         from whenTrueStatements in (
-            Parse.Ref(() => statementOnelineRule).Once()
+            Parse.Ref(() => statementRule).Once()
             .Or(from lparen in Parse.Char('(')
                 from statements in Parse.Ref(() => statementRule.XMany())
                 from rparen in Parse.Char(')')
@@ -152,7 +162,7 @@ public static class WindowsBatchParser
         from whenFalseStatements in (
             from keywordElse in Parse.IgnoreCase("ELSE").Token()
             from whenFalseStatements in (
-                Parse.Ref(() => statementOnelineRule).Once()
+                Parse.Ref(() => statementRule).Once()
                 .Or(from lparen in Parse.Char('(')
                     from statements in Parse.Ref(() => statementRule.XMany())
                     from rparen in Parse.Char(')')
@@ -169,17 +179,18 @@ public static class WindowsBatchParser
         from atmark in Parse.Char('@').Optional()  // コマンド名の出力を非表示にするための「@」
         from _ in Parse.WhiteSpace.Many()
         from statement in
-            statementOnelineRule
+            execStatementRule
             .Or(commentsRule.Token())
             .Or(labelRule.Token())
             .Or(ifStatementRule.Token())
         select statement;
 
     /// <summary>
-    /// ステートメント（1行のみ）の構文
+    /// ステートメント（コマンド実行系のみ）の構文
     /// </summary>
-    public static readonly Parser<IStatement> statementOnelineRule =
-        setVariableRule.Token();
+    public static readonly Parser<IStatement> execStatementRule =
+        from statement in setVariableRule.Token()
+        select statement;
 
     /// <summary>
     /// バッチファイルの構文
