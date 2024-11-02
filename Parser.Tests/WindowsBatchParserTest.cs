@@ -83,4 +83,41 @@ public class UnitTestWindowsBatchParser
         Assert.Equal("1", statement2.Value);
     }
 
+    [Fact]
+    public void ParseGoto()
+    {
+        string input = """
+        goto LABEL1_EXIT
+        """;
+        BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
+        var statements = result.Statements.ToArray();
+        Assert.True(statements.Length >= 1);
+        Assert.True(statements[0] is NodeGoto);
+        NodeGoto statement1 = (NodeGoto)statements[0];
+        Assert.Equal("LABEL1_EXIT", statement1.Name);
+    }
+
+    [Fact]
+    public void ParseCall()
+    {
+        string input = """
+        call %BIN_PATH%\MyProcess.cmd
+        call %BIN_PATH%\MyProcess2.cmd %_MyVariable% 1234
+        """;
+        BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
+        var statements = result.Statements.ToArray();
+        Assert.Equal(2, statements.Length);
+        Assert.True(statements[0] is NodeCallFile);
+        Assert.True(statements[1] is NodeCallFile);
+        NodeCallFile statement1 = (NodeCallFile)statements[0];
+        Assert.Equal(@"%BIN_PATH%\MyProcess.cmd", statement1.Path);
+        Assert.Empty(statement1.Parameters.ToArray());
+
+        NodeCallFile statement2 = (NodeCallFile)statements[1];
+        Assert.Equal(@"%BIN_PATH%\MyProcess2.cmd", statement2.Path);
+        var statement2Parameters = statement2.Parameters.ToArray();
+        Assert.Equal(2, statement2Parameters.Length);
+        Assert.Equal("%_MyVariable%", statement2Parameters[0]);
+        Assert.Equal("1234", statement2Parameters[1]);
+    }
 }

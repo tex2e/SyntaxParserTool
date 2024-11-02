@@ -69,3 +69,37 @@ public class NodeSetVariable(string name, string value) : IStatement
         return $"<setvariable name={{{name}}} value={{{value}}}";
     }
 }
+
+/// <summary>
+/// GOTO文
+/// </summary>
+/// <param name="name">遷移先のラベル名</param>
+public class NodeGoto(string name) : IStatement
+{
+    public string Name => name;
+
+    public override string ToString()
+    {
+        return $"<goto name={{{name}}}>";
+    }
+}
+
+/// <summary>
+/// CALL文（ファイル呼び出し）
+/// </summary>
+/// <param name="name">遷移先のラベル名</param>
+public class NodeCallFile(string path, IEnumerable<string> parameters) : IStatement
+{
+    public string Path => path;
+    public IEnumerable<string> Parameters => parameters;
+
+    public override string ToString()
+    {
+        var sb = new StringBuilder();
+        sb.Append($"<callfile path={{{path}}} parameters={{");
+        sb.Append(string.Join(" ", parameters));
+        sb.Append($"}}>");
+        return sb.ToString();
+    }
+}
+

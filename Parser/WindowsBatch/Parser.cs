@@ -18,6 +18,27 @@ public static class WindowsBatchParser
         select new string(first.Concat(rest).ToArray())).Named("identifier");
 
     /// <summary>
+    /// ダブルクオーテーションで囲まれた文字列の構文
+    /// </summary>
+    /// <example>
+    ///   "C:\path\to\my custom file.txt"
+    /// </example>
+    public static readonly Parser<string> quotedValue =
+        from open in Parse.Char('"')
+        from content in Parse.CharExcept('"').Many().Text()
+        from end in Parse.Char('"')
+        select content;
+    
+    /// <summary>
+    /// ダブルクオーテーションで囲まれていない文字列の構文
+    /// </summary>
+    /// <example>
+    ///   C:\path\to\file.txt
+    /// </example>
+    public static readonly Parser<string> literalValue =
+        Parse.CharExcept(char.IsWhiteSpace, "literalValue").Many().Text();
+
+    /// <summary>
     /// 単行コメントの構文
     /// </summary>
     /// <example>
@@ -25,7 +46,7 @@ public static class WindowsBatchParser
     /// </example>
     public static readonly Parser<string> commentRule =
         from directive in Parse.IgnoreCase("REM").Text()
-        from spaces in Parse.WhiteSpace
+        from spaces in Parse.WhiteSpace.Except(Parse.Char('\n'))
         from comment in Parse.CharExcept("\r\n").Many().Text()
         from newline in Parse.LineTerminator
         select comment;
@@ -54,6 +75,29 @@ public static class WindowsBatchParser
         select new NodeLabel(label)).Named("label");
 
     /// <summary>
+    /// GOTO命令の構文
+    /// </summary>
+    public static readonly Parser<NodeGoto> gotoRule =
+        from keywordGoto in Parse.IgnoreCase("GOTO")
+        from _ in Parse.WhiteSpace.Except(Parse.Char('\n')).AtLeastOnce()
+        from label in identifierRule
+        select new NodeGoto(label);
+
+    /// <summary>
+    /// CALL命令の構文（CMDファイル呼び出し）
+    /// </summary>
+    public static readonly Parser<NodeCallFile> callFileRule =
+        from keywordCall in Parse.IgnoreCase("CALL")
+        from _whitespace1 in Parse.WhiteSpace.Except(Parse.Char('\n')).AtLeastOnce()
+        from path in quotedValue.XOr(literalValue)
+        from parameters in (
+            from _ in Parse.WhiteSpace.Except(Parse.Char('\n')).AtLeastOnce().Optional()
+            from param in quotedValue.XOr(literalValue)
+            select param
+        ).XMany().Optional()
+        select new NodeCallFile(path, parameters.GetOrDefault());
+
+    /// <summary>
     /// 変数への値代入の構文
     /// </summary>
     /// <example>
@@ -61,32 +105,11 @@ public static class WindowsBatchParser
     /// </example>
     public static readonly Parser<NodeSetVariable> setVariableRule =
         from set in Parse.IgnoreCase("SET")
-        from _ in Parse.WhiteSpace.AtLeastOnce()
+        from _ in Parse.WhiteSpace.Except(Parse.Char('\n')).AtLeastOnce()
         from name in identifierRule
         from eq in Parse.Char('=')
         from value in Parse.CharExcept("\r\n").Many().Text()
         select new NodeSetVariable(name, value);
-
-    /// <summary>
-    /// ダブルクオーテーションで囲まれた文字列の構文
-    /// </summary>
-    /// <example>
-    ///   "C:\path\to\my custom file.txt"
-    /// </example>
-    public static readonly Parser<string> quotedValue =
-        from open in Parse.Char('"')
-        from content in Parse.CharExcept('"').Many().Text()
-        from end in Parse.Char('"')
-        select content;
-    
-    /// <summary>
-    /// ダブルクオーテーションで囲まれていない文字列の構文
-    /// </summary>
-    /// <example>
-    ///   C:\path\to\file.txt
-    /// </example>
-    public static readonly Parser<string> literalValue =
-        Parse.CharExcept(char.IsWhiteSpace, "literalValue").Many().Text();
 
     /// <summary>
     /// IFの比較の構文
@@ -132,7 +155,7 @@ public static class WindowsBatchParser
     /// </example>
     public static readonly Parser<ICondition> notConditionRule =
         from not in Parse.IgnoreCase("NOT")
-        from _ in Parse.WhiteSpace.AtLeastOnce()
+        from _ in Parse.WhiteSpace.Except(Parse.Char('\n')).AtLeastOnce()
         from cond in conditionRule
         select cond;
 
@@ -177,7 +200,6 @@ public static class WindowsBatchParser
     /// </summary>
     public static readonly Parser<IStatement> statementRule =
         from atmark in Parse.Char('@').Optional()  // コマンド名の出力を非表示にするための「@」
-        from _ in Parse.WhiteSpace.Many()
         from statement in
             execStatementRule
             .Or(commentsRule.Token())
@@ -189,7 +211,10 @@ public static class WindowsBatchParser
     /// ステートメント（コマンド実行系のみ）の構文
     /// </summary>
     public static readonly Parser<IStatement> execStatementRule =
-        from statement in setVariableRule.Token()
+        from statement in 
+            setVariableRule.Token<IStatement>()
+            .Or(gotoRule.Token())
+            .Or(callFileRule.Token())
         select statement;
 
     /// <summary>
