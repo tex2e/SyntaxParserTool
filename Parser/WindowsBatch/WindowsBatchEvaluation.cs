@@ -4,8 +4,10 @@ using System.Text;
 
 namespace SyntaxParserTool.Parser.WindowsBatch;
 
-public class BatchFile(IEnumerable<IStatement>? statements)
+public class BatchFile(IEnumerable<IStatement> statements)
 {
+    public IEnumerable<IStatement> Statements => statements;
+
     public override string ToString()
     {
         var sb = new StringBuilder();
@@ -28,12 +30,14 @@ public interface IStatement
 /// <summary>
 /// コメント
 /// </summary>
-/// <param name="Text">コメント内容</param>
-public class Comment(string Text) : IStatement
+/// <param name="text">コメント内容</param>
+public class Comment(string text) : IStatement
 {
+    public string Text => text;
+
     public override string ToString()
     {
-        return $"<rem text={{{Text}}}>";
+        return $"<rem text={{{text}}}>";
     }
 }
 
@@ -41,24 +45,29 @@ public class Comment(string Text) : IStatement
 /// ラベル
 /// </summary>
 /// <param name="Text">ラベル名</param>
-public class Label(string Text) : IStatement
+public class Label(string name) : IStatement
 {
+    public string Name => name;
+
     public override string ToString()
     {
-        return $"<label text={{{Text}}}>";
+        return $"<label name={{{name}}}>";
     }
 }
 
 /// <summary>
 /// 変数の代入
 /// </summary>
-/// <param name="Name">変数名</param>
-/// <param name="Value">設定値</param>
-public class SetVariable(string Name, string Value) : IStatement
+/// <param name="name">変数名</param>
+/// <param name="value">設定値</param>
+public class SetVariable(string name, string value) : IStatement
 {
+    public string Name => name;
+    public string Value => value;
+
     public override string ToString()
     {
-        return $"<setvariable name={{{Name}}} value={{{Value}}}";
+        return $"<setvariable name={{{name}}} value={{{value}}}";
     }
 }
 

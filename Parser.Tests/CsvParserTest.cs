@@ -1,4 +1,3 @@
-using Xunit;
 using SyntaxParserTool.Parser.Csv;
 using Sprache;
 
