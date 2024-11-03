@@ -19,8 +19,8 @@ public class UnitTestWindowsBatchParserIfStatement
         """;
         BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
         var statements = result.Statements.ToArray();
-        Assert.True(statements.Length >= 1);
-        Assert.True(statements[0] is NodeIfStatement);
+        Assert.Single(statements);
+        Assert.IsType<NodeIfStatement>(statements[0]);
         NodeIfStatement statement1 = (NodeIfStatement)statements[0];
         NodeComparison condition1 = (NodeComparison)statement1.Condition;
         Assert.Equal("\"%TEST%\"", condition1.LeftLiteral);
@@ -28,7 +28,7 @@ public class UnitTestWindowsBatchParserIfStatement
         Assert.Equal("\"1\"", condition1.RightLiteral);
         // true statement
         IStatement[] trueStatements = statement1.WhenTrueStatements.ToArray();
-        Assert.True(trueStatements.Length >= 1);
+        Assert.Single(trueStatements);
         NodeSetVariable statement1_1 = (NodeSetVariable)trueStatements[0];
         Assert.Equal("flag", statement1_1.Name);
         Assert.Equal("true", statement1_1.Value);
@@ -55,8 +55,8 @@ public class UnitTestWindowsBatchParserIfStatement
         """;
         BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
         var statements = result.Statements.ToArray();
-        Assert.True(statements.Length >= 1);
-        Assert.True(statements[0] is NodeIfStatement);
+        Assert.Single(statements);
+        Assert.IsType<NodeIfStatement>(statements[0]);
         NodeIfStatement statement1 = (NodeIfStatement)statements[0];
         NodeComparison condition1 = (NodeComparison)statement1.Condition;
         Assert.Equal("%TEST%", condition1.LeftLiteral);
@@ -64,7 +64,32 @@ public class UnitTestWindowsBatchParserIfStatement
         Assert.Equal("123", condition1.RightLiteral);
         // true statement
         IStatement[] trueStatements = statement1.WhenTrueStatements.ToArray();
-        Assert.True(trueStatements.Length >= 1);
+        Assert.Single(trueStatements);
+        NodeSetVariable statement1_1 = (NodeSetVariable)trueStatements[0];
+        Assert.Equal("flag", statement1_1.Name);
+        Assert.Equal("true", statement1_1.Value);
+    }
+
+    [Fact]
+    public void ParseIfNotEqual()
+    {
+        string input = """
+        if NOT "%TEST%" == "1" set flag=true
+        """;
+        BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
+        var statements = result.Statements.ToArray();
+        Assert.Single(statements);
+        Assert.IsType<NodeIfStatement>(statements[0]);
+        NodeIfStatement statement1 = (NodeIfStatement)statements[0];
+        Assert.IsType<NodeNegatedCondition>(statement1.Condition);
+        NodeNegatedCondition condition1 = (NodeNegatedCondition)statement1.Condition;
+        NodeComparison condition1_1 = (NodeComparison)condition1.Condition;
+        Assert.Equal("\"%TEST%\"", condition1_1.LeftLiteral);
+        Assert.Equal("==", condition1_1.Ope);
+        Assert.Equal("\"1\"", condition1_1.RightLiteral);
+        // true statement
+        IStatement[] trueStatements = statement1.WhenTrueStatements.ToArray();
+        Assert.Single(trueStatements);
         NodeSetVariable statement1_1 = (NodeSetVariable)trueStatements[0];
         Assert.Equal("flag", statement1_1.Name);
         Assert.Equal("true", statement1_1.Value);
@@ -79,16 +104,16 @@ public class UnitTestWindowsBatchParserIfStatement
         """;
         BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
         var statements = result.Statements.ToArray();
-        Assert.True(statements.Length >= 2);
-        Assert.True(statements[0] is NodeIfStatement);
-        Assert.True(statements[1] is NodeIfStatement);
+        Assert.Equal(2, statements.Length);
+        Assert.IsType<NodeIfStatement>(statements[0]);
+        Assert.IsType<NodeIfStatement>(statements[1]);
 
         NodeIfStatement statement1 = (NodeIfStatement)statements[0];
         NodeExists condition1 = (NodeExists)statement1.Condition;
         Assert.Equal(@"c:\path\to\my.exe", condition1.Path);
         // true statement
         IStatement[] statements1TrueStatements = statement1.WhenTrueStatements.ToArray();
-        Assert.True(statements1TrueStatements.Length >= 1);
+        Assert.Single(statements1TrueStatements);
         NodeSetVariable statement1_1 = (NodeSetVariable)statements1TrueStatements[0];
         Assert.Equal("flag", statement1_1.Name);
         Assert.Equal("true", statement1_1.Value);
@@ -98,7 +123,7 @@ public class UnitTestWindowsBatchParserIfStatement
         Assert.Equal(@"d:\path\to\Program Files\my.exe", condition2.Path);
         // true statement
         IStatement[] statements2TrueStatements = statement2.WhenTrueStatements.ToArray();
-        Assert.True(statements2TrueStatements.Length >= 1);
+        Assert.Single(statements2TrueStatements);
         NodeSetVariable statement2_1 = (NodeSetVariable)statements2TrueStatements[0];
         Assert.Equal("flag", statement2_1.Name);
         Assert.Equal("true", statement2_1.Value);
@@ -113,28 +138,30 @@ public class UnitTestWindowsBatchParserIfStatement
         """;
         BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
         var statements = result.Statements.ToArray();
-        Assert.True(statements.Length >= 2);
-        Assert.True(statements[0] is NodeIfStatement);
-        Assert.True(statements[1] is NodeIfStatement);
+        Assert.Equal(2, statements.Length);
+        Assert.IsType<NodeIfStatement>(statements[0]);
+        Assert.IsType<NodeIfStatement>(statements[1]);
 
         NodeIfStatement statement1 = (NodeIfStatement)statements[0];
+        Assert.IsType<NodeNegatedCondition>(statement1.Condition);
         NodeNegatedCondition condition1 = (NodeNegatedCondition)statement1.Condition;
         NodeExists condition1_1 = (NodeExists)condition1.Condition;
         Assert.Equal(@"c:\path\to\my.exe", condition1_1.Path);
         // true statement
         IStatement[] statements1TrueStatements = statement1.WhenTrueStatements.ToArray();
-        Assert.True(statements1TrueStatements.Length >= 1);
+        Assert.Single(statements1TrueStatements);
         NodeSetVariable statement1_1 = (NodeSetVariable)statements1TrueStatements[0];
         Assert.Equal("flag", statement1_1.Name);
         Assert.Equal("true", statement1_1.Value);
 
         NodeIfStatement statement2 = (NodeIfStatement)statements[1];
+        Assert.IsType<NodeNegatedCondition>(statement2.Condition);
         NodeNegatedCondition condition2 = (NodeNegatedCondition)statement2.Condition;
         NodeExists condition2_1 = (NodeExists)condition2.Condition;
         Assert.Equal(@"d:\path\to\Program Files\my.exe", condition2_1.Path);
         // true statement
         IStatement[] statements2TrueStatements = statement2.WhenTrueStatements.ToArray();
-        Assert.True(statements2TrueStatements.Length >= 1);
+        Assert.Single(statements2TrueStatements);
         NodeSetVariable statement2_1 = (NodeSetVariable)statements2TrueStatements[0];
         Assert.Equal("flag", statement2_1.Name);
         Assert.Equal("true", statement2_1.Value);
@@ -151,8 +178,9 @@ public class UnitTestWindowsBatchParserIfStatement
         """;
         BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
         var statements = result.Statements.ToArray();
-        Assert.True(statements.Length >= 1);
-        Assert.True(statements[0] is NodeIfStatement);
+        Assert.Single(statements);
+        Assert.IsType<NodeIfStatement>(statements[0]);
+
         NodeIfStatement statement1 = (NodeIfStatement)statements[0];
         NodeComparison condition1 = (NodeComparison)statement1.Condition;
         Assert.Equal("{%foobar%}", condition1.LeftLiteral);
@@ -160,7 +188,7 @@ public class UnitTestWindowsBatchParserIfStatement
         Assert.Equal("{123}", condition1.RightLiteral);
         // true block
         IStatement[] trueStatements = statement1.WhenTrueStatements.ToArray();
-        Assert.True(trueStatements.Length >= 2);
+        Assert.Equal(2, trueStatements.Length);
         NodeComment statement1_1 = (NodeComment)trueStatements[0];
         Assert.Equal("OK!", statement1_1.Text);
         NodeSetVariable statement1_2 = (NodeSetVariable)trueStatements[1];
@@ -182,16 +210,17 @@ public class UnitTestWindowsBatchParserIfStatement
         """;
         BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
         var statements = result.Statements.ToArray();
-        Assert.True(statements.Length >= 1);
-        Assert.True(statements[0] is NodeIfStatement);
+        Assert.Single(statements);
+        Assert.IsType<NodeIfStatement>(statements[0]);
         NodeIfStatement statement1 = (NodeIfStatement)statements[0];
+        Assert.IsType<NodeComparison>(statement1.Condition);
         NodeComparison condition1 = (NodeComparison)statement1.Condition;
         Assert.Equal("{%foobar%}", condition1.LeftLiteral);
         Assert.Equal("==", condition1.Ope);
         Assert.Equal("{123}", condition1.RightLiteral);
         // true block
         IStatement[] trueStatements = statement1.WhenTrueStatements.ToArray();
-        Assert.True(trueStatements.Length >= 2);
+        Assert.Equal(2, trueStatements.Length);
         NodeComment statement1_1 = (NodeComment)trueStatements[0];
         Assert.Equal("OK!", statement1_1.Text);
         NodeSetVariable statement1_2 = (NodeSetVariable)trueStatements[1];
@@ -199,7 +228,7 @@ public class UnitTestWindowsBatchParserIfStatement
         Assert.Equal("true", statement1_2.Value);
         // false block
         IStatement[] falseStatements = statement1.WhenFalseStatements.ToArray();
-        Assert.True(falseStatements.Length >= 2);
+        Assert.Equal(2, falseStatements.Length);
         NodeComment statement2_1 = (NodeComment)falseStatements[0];
         Assert.Equal("NG!", statement2_1.Text);
         NodeSetVariable statement2_2 = (NodeSetVariable)falseStatements[1];
@@ -218,16 +247,17 @@ public class UnitTestWindowsBatchParserIfStatement
         """;
         BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
         var statements = result.Statements.ToArray();
-        Assert.True(statements.Length >= 1);
-        Assert.True(statements[0] is NodeIfStatement);
+        Assert.Single(statements);
+        Assert.IsType<NodeIfStatement>(statements[0]);
         NodeIfStatement statement1 = (NodeIfStatement)statements[0];
+        Assert.IsType<NodeComparison>(statement1.Condition);
         NodeComparison condition1 = (NodeComparison)statement1.Condition;
         Assert.Equal("{%foobar%}", condition1.LeftLiteral);
         Assert.Equal("==", condition1.Ope);
         Assert.Equal("{123}", condition1.RightLiteral);
         // true block
         IStatement[] trueStatements = statement1.WhenTrueStatements.ToArray();
-        Assert.True(trueStatements.Length >= 2);
+        Assert.Equal(2, trueStatements.Length);
         NodeComment statement1_1 = (NodeComment)trueStatements[0];
         Assert.Equal("OK!", statement1_1.Text);
         NodeSetVariable statement1_2 = (NodeSetVariable)trueStatements[1];
@@ -235,7 +265,7 @@ public class UnitTestWindowsBatchParserIfStatement
         Assert.Equal("true", statement1_2.Value);
         // false block
         IStatement[] falseStatements = statement1.WhenFalseStatements.ToArray();
-        Assert.True(falseStatements.Length >= 1);
+        Assert.Single(falseStatements);
         NodeSetVariable statement2_1 = (NodeSetVariable)falseStatements[0];
         Assert.Equal("flag", statement2_1.Name);
         Assert.Equal("false", statement2_1.Value);

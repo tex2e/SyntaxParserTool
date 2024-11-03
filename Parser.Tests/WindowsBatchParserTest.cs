@@ -20,8 +20,8 @@ public class UnitTestWindowsBatchParser
         """;
         BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
         var statements = result.Statements.ToArray();
-        Assert.True(statements.Length >= 1);
-        Assert.True(statements[0] is NodeComment);
+        Assert.Single(statements);
+        Assert.IsType<NodeComment>(statements[0]);
         Assert.Equal("Test Comment\nコメントテスト", ((NodeComment)statements[0]).Text);
     }
 
@@ -35,10 +35,10 @@ public class UnitTestWindowsBatchParser
         """;
         BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
         var statements = result.Statements.ToArray();
-        Assert.True(statements.Length >= 3);
-        Assert.True(statements[0] is NodeSetVariable);
-        Assert.True(statements[1] is NodeSetVariable);
-        Assert.True(statements[2] is NodeSetVariable);
+        Assert.Equal(3, statements.Length);
+        Assert.IsType<NodeSetVariable>(statements[0]);
+        Assert.IsType<NodeSetVariable>(statements[1]);
+        Assert.IsType<NodeSetVariable>(statements[2]);
         NodeSetVariable statement1 = (NodeSetVariable)statements[0];
         Assert.Equal("i", statement1.Name);
         Assert.Equal("1", statement1.Value);
@@ -58,8 +58,8 @@ public class UnitTestWindowsBatchParser
         """;
         BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
         var statements = result.Statements.ToArray();
-        Assert.True(statements.Length >= 1);
-        Assert.True(statements[0] is NodeLabel);
+        Assert.Single(statements);
+        Assert.IsType<NodeLabel>(statements[0]);
         NodeLabel statement1 = (NodeLabel)statements[0];
         Assert.Equal("Label_test123", statement1.Name);
     }
@@ -73,9 +73,9 @@ public class UnitTestWindowsBatchParser
         """;
         BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
         var statements = result.Statements.ToArray();
-        Assert.True(statements.Length >= 2);
-        Assert.True(statements[0] is NodeComment);
-        Assert.True(statements[1] is NodeSetVariable);
+        Assert.Equal(2, statements.Length);
+        Assert.IsType<NodeComment>(statements[0]);
+        Assert.IsType<NodeSetVariable>(statements[1]);
         NodeComment statement1 = (NodeComment)statements[0];
         Assert.Equal("test", statement1.Text);
         NodeSetVariable statement2 = (NodeSetVariable)statements[1];
@@ -91,8 +91,8 @@ public class UnitTestWindowsBatchParser
         """;
         BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
         var statements = result.Statements.ToArray();
-        Assert.True(statements.Length >= 1);
-        Assert.True(statements[0] is NodeGoto);
+        Assert.Single(statements);
+        Assert.IsType<NodeGoto>(statements[0]);
         NodeGoto statement1 = (NodeGoto)statements[0];
         Assert.Equal("LABEL1_EXIT", statement1.Name);
     }
@@ -106,7 +106,7 @@ public class UnitTestWindowsBatchParser
         BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
         var statements = result.Statements.ToArray();
         Assert.Single(statements);
-        Assert.True(statements[0] is NodeCallFile);
+        Assert.IsType<NodeCallFile>(statements[0]);
         NodeCallFile statement1 = (NodeCallFile)statements[0];
         Assert.Equal(@"%BIN_PATH%\MyProcess.cmd", statement1.Path);
         Assert.Empty(statement1.Parameters.ToArray());
