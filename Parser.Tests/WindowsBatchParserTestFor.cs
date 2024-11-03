@@ -119,5 +119,68 @@ public class UnitTestWindowsBatchParserForStatement
         Assert.Equal("%%p", statements1_2_params[0]);
     }
 
+    [Fact]
+    public void ParseNestedFor()
+    {
+        string input = """
+        FOR /F "delims= " %%i IN ("1 2 3") DO FOR /F "delims= " %%i IN ("4 5 6") DO echo %%i %%j
+        """;
+        BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
+        var statements1 = result.Statements.ToArray();
+        Assert.Single(statements1);
+
+        var target1 = statements1[0];
+        Assert.IsType<NodeForFile>(target1);
+        NodeForFile nodeForFile1 = (NodeForFile)target1;
+        Assert.Equal("\"1 2 3\"", nodeForFile1.Set);
+
+        var statements1_1 = nodeForFile1.Statements.ToArray();
+        Assert.Single(statements1_1);
+        var target1_1 = statements1_1[0];
+        Assert.IsType<NodeForFile>(target1_1);
+        NodeForFile nodeForFile1_1 = (NodeForFile)target1_1;
+        Assert.Equal("\"4 5 6\"", nodeForFile1_1.Set);
+
+        var statements1_1_1 = nodeForFile1_1.Statements.ToArray();
+        Assert.Single(statements1_1_1);
+        var target1_1_1 = statements1_1_1[0];
+        Assert.IsType<NodeEcho>(target1_1_1);
+        NodeEcho nodeEcho = (NodeEcho)target1_1_1;
+        Assert.Equal("%%i %%j", nodeEcho.Message);
+    }
+
+    [Fact]
+    public void ParseNestedForWithMultipleStatements()
+    {
+        string input = """
+        FOR /F "delims= " %%i IN ("1 2 3") DO (
+            FOR /F "delims= " %%i IN ("4 5 6") DO (
+                echo %%i %%j
+            )
+        )
+        """;
+        BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
+        var statements1 = result.Statements.ToArray();
+        Assert.Single(statements1);
+
+        var target1 = statements1[0];
+        Assert.IsType<NodeForFile>(target1);
+        NodeForFile nodeForFile1 = (NodeForFile)target1;
+        Assert.Equal("\"1 2 3\"", nodeForFile1.Set);
+
+        var statements1_1 = nodeForFile1.Statements.ToArray();
+        Assert.Single(statements1_1);
+        var target1_1 = statements1_1[0];
+        Assert.IsType<NodeForFile>(target1_1);
+        NodeForFile nodeForFile1_1 = (NodeForFile)target1_1;
+        Assert.Equal("\"4 5 6\"", nodeForFile1_1.Set);
+
+        var statements1_1_1 = nodeForFile1_1.Statements.ToArray();
+        Assert.Single(statements1_1_1);
+        var target1_1_1 = statements1_1_1[0];
+        Assert.IsType<NodeEcho>(target1_1_1);
+        NodeEcho nodeEcho = (NodeEcho)target1_1_1;
+        Assert.Equal("%%i %%j", nodeEcho.Message);
+    }
 
 }

@@ -60,7 +60,7 @@ public static class WindowsBatchParser
     ///   REM ...
     /// </example>
     public static readonly Parser<NodeComment> commentsRule =
-        from comments in commentRule.Many()
+        from comments in commentRule.AtLeastOnce()
         select new NodeComment(string.Join("\n", comments));
 
     /// <summary>
