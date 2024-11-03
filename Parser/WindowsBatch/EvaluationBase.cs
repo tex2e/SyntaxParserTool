@@ -71,6 +71,21 @@ public class NodeSetVariable(string name, string value) : IStatement
 }
 
 /// <summary>
+/// ECHO命令
+/// </summary>
+/// <param name="message"></param>
+public class NodeEcho(string message, Boolean escapeMode = false) : IStatement
+{
+    public string Message => message;
+    public Boolean EscapeMode => escapeMode;
+
+    public override string ToString()
+    {
+        return $"<echo message={{{message}}}>";
+    }
+}
+
+/// <summary>
 /// GOTO文
 /// </summary>
 /// <param name="name">遷移先のラベル名</param>

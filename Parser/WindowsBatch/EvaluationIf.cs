@@ -73,14 +73,13 @@ public class NodeIfStatement(
     {
         using var output = new StringWriter();
         using var writer = new IndentedTextWriter(output);
-        writer.WriteLine($"<if condition={{{condition}}}");
-        writer.WriteLine($"whenTrueStatements={{");
+        writer.WriteLine($"<if condition={{{condition}}} whenTrueStatements={{");
         writer.Indent++;
         foreach (var statement in whenTrueStatements) {
             writer.WriteLine(statement.ToString());
         }
         writer.Indent--;
-        writer.WriteLine("}}");
+        writer.Write("}}");
         if (whenFalseStatements is not null)
         {
             writer.WriteLine("whenFalseStatements={{");
@@ -89,7 +88,7 @@ public class NodeIfStatement(
                 writer.WriteLine(statement.ToString());
             }
             writer.Indent--;
-            writer.WriteLine("}}");
+            writer.Write("}}");
         }
         writer.WriteLine($">");
         return output.ToString();

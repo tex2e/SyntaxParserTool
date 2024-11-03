@@ -64,6 +64,18 @@ public static class WindowsBatchParser
         select new NodeComment(string.Join("\n", comments));
 
     /// <summary>
+    /// ECHOコマンド
+    /// </summary>
+    public static readonly Parser<NodeEcho> echoRule =
+        from keywordEcho in Parse.IgnoreCase("ECHO")
+        from escapeMode in
+            Parse.Char(':').Return(true)
+            .XOr(Parse.Char('.').Return(false))
+            .XOr(Parse.WhiteSpace.Except(Parse.Char('\n')).AtLeastOnce().Return(false))
+        from message in Parse.CharExcept("\r\n><|&").Many().Text()
+        select new NodeEcho(message, escapeMode);
+
+    /// <summary>
     /// GOTO用のラベルの構文
     /// </summary>
     /// <example>
@@ -255,6 +267,7 @@ public static class WindowsBatchParser
     public static readonly Parser<IStatement> execStatementRule =
         from statement in 
             setVariableRule.Token<IStatement>()
+            .Or(echoRule.Token())
             .Or(gotoRule.Token())
             .Or(callRule.Token())
         select statement;

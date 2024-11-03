@@ -20,14 +20,13 @@ public class NodeForFile(
     {
         using var output = new StringWriter();
         using var writer = new IndentedTextWriter(output);
-        writer.WriteLine($"<for option={{{option}}} parameter={{{parameter}}} set={{{set}}}");
-        writer.WriteLine($"statements={{");
+        writer.WriteLine($"<for option={{{option}}} parameter={{{parameter}}} set={{{set}}} statements={{");
         writer.Indent++;
         foreach (var statement in statements) {
             writer.WriteLine(statement.ToString());
         }
         writer.Indent--;
-        writer.WriteLine($">");
+        writer.WriteLine($"}}>");
         return output.ToString();
     }
 }

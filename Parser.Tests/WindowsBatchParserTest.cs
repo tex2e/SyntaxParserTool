@@ -84,6 +84,79 @@ public class UnitTestWindowsBatchParser
     }
 
     [Fact]
+    public void ParseEcho()
+    {
+        string input = """
+        echo Hello, world!
+        """;
+        BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
+        var statements = result.Statements.ToArray();
+        Assert.Single(statements);
+        var target1 = statements[0];
+        Assert.IsType<NodeEcho>(target1);
+        NodeEcho statement1 = (NodeEcho)target1;
+        Assert.Equal("Hello, world!", statement1.Message);
+    }
+
+    [Fact]
+    public void ParseEchoEscaped()
+    {
+        string input = """
+        ECHO:%_department%
+        """;
+        BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
+        var statements = result.Statements.ToArray();
+        Assert.Single(statements);
+        var target1 = statements[0];
+        Assert.IsType<NodeEcho>(target1);
+        NodeEcho statement1 = (NodeEcho)target1;
+        Assert.Equal("%_department%", statement1.Message);
+    }
+
+    [Fact]
+    public void ParseEchoOff()
+    {
+        string input = """
+        @echo off
+        """;
+        BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
+        var statements = result.Statements.ToArray();
+        Assert.Single(statements);
+        var target1 = statements[0];
+        Assert.IsType<NodeEcho>(target1);
+        NodeEcho statement1 = (NodeEcho)target1;
+        Assert.Equal("off", statement1.Message);
+    }
+
+    [Fact]
+    public void ParseEchoNewline()
+    {
+        string input = """
+        Echo First Line
+        Echo.
+        Echo Third line
+        """;
+        BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
+        var statements = result.Statements.ToArray();
+        Assert.Equal(3, statements.Length);
+
+        var target1 = statements[0];
+        Assert.IsType<NodeEcho>(target1);
+        NodeEcho statement1 = (NodeEcho)target1;
+        Assert.Equal("First Line", statement1.Message);
+
+        var target2 = statements[1];
+        Assert.IsType<NodeEcho>(target2);
+        NodeEcho statement2 = (NodeEcho)target2;
+        Assert.Equal("", statement2.Message);
+
+        var target3 = statements[2];
+        Assert.IsType<NodeEcho>(target3);
+        NodeEcho statement3 = (NodeEcho)target3;
+        Assert.Equal("Third line", statement3.Message);
+    }
+
+    [Fact]
     public void ParseGoto()
     {
         string input = """
