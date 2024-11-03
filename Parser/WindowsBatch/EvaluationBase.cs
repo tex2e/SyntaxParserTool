@@ -88,15 +88,15 @@ public class NodeGoto(string name) : IStatement
 /// CALL文（ファイル呼び出し）
 /// </summary>
 /// <param name="name">遷移先のラベル名</param>
-public class NodeCallFile(string path, IEnumerable<string> parameters) : IStatement
+public class NodeCall(string name, IEnumerable<string> parameters) : IStatement
 {
-    public string Path => path;
+    public string Name => name;
     public IEnumerable<string> Parameters => parameters;
 
     public override string ToString()
     {
         var sb = new StringBuilder();
-        sb.Append($"<callfile path={{{path}}} parameters={{");
+        sb.Append($"<callfile name={{{name}}} parameters={{");
         sb.Append(string.Join(" ", parameters));
         sb.Append($"}}>");
         return sb.ToString();

@@ -106,9 +106,9 @@ public class UnitTestWindowsBatchParser
         BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
         var statements = result.Statements.ToArray();
         Assert.Single(statements);
-        Assert.IsType<NodeCallFile>(statements[0]);
-        NodeCallFile statement1 = (NodeCallFile)statements[0];
-        Assert.Equal(@"%BIN_PATH%\MyProcess.cmd", statement1.Path);
+        Assert.IsType<NodeCall>(statements[0]);
+        NodeCall statement1 = (NodeCall)statements[0];
+        Assert.Equal(@"%BIN_PATH%\MyProcess.cmd", statement1.Name);
         Assert.Empty(statement1.Parameters.ToArray());
     }
 
@@ -122,18 +122,18 @@ public class UnitTestWindowsBatchParser
         BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
         var statements = result.Statements.ToArray();
         Assert.Equal(2, statements.Length);
-        Assert.True(statements[0] is NodeCallFile);
-        Assert.True(statements[1] is NodeCallFile);
+        Assert.True(statements[0] is NodeCall);
+        Assert.True(statements[1] is NodeCall);
 
-        NodeCallFile statement1 = (NodeCallFile)statements[0];
-        Assert.Equal(@"%BIN_PATH%\MyProcess1.cmd", statement1.Path);
+        NodeCall statement1 = (NodeCall)statements[0];
+        Assert.Equal(@"%BIN_PATH%\MyProcess1.cmd", statement1.Name);
         var statement1Parameters = statement1.Parameters.ToArray();
         Assert.Equal(2, statement1Parameters.Length);
         Assert.Equal("%_MyVariable%", statement1Parameters[0]);
         Assert.Equal("1234", statement1Parameters[1]);
 
-        NodeCallFile statement2 = (NodeCallFile)statements[1];
-        Assert.Equal(@"%BIN_PATH%\MyProcess2.cmd", statement2.Path);
+        NodeCall statement2 = (NodeCall)statements[1];
+        Assert.Equal(@"%BIN_PATH%\MyProcess2.cmd", statement2.Name);
         var statement2Parameters = statement2.Parameters.ToArray();
         Assert.Equal(3, statement2Parameters.Length);
         Assert.Equal("%YYYY%/%MM%/%DD% %hh%:%mm%:%ss%", statement2Parameters[0]);

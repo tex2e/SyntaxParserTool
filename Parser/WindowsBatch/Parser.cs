@@ -84,18 +84,24 @@ public static class WindowsBatchParser
         select new NodeGoto(label);
 
     /// <summary>
-    /// CALL命令の構文（CMDファイル呼び出し）
+    /// CALL命令の構文（ファイル / ラベル）
     /// </summary>
-    public static readonly Parser<NodeCallFile> callFileRule =
+    /// <example>
+    ///   CALL Sample.cmd arg1 "custom message" 123
+    ///   call :subroutine "%%G"
+    /// </example>
+    public static readonly Parser<NodeCall> callRule =
         from keywordCall in Parse.IgnoreCase("CALL")
         from _whitespace1 in Parse.WhiteSpace.Except(Parse.Char('\n')).AtLeastOnce()
-        from path in quotedValue.XOr(literalValue)
+        // CMDファイル名 or ジャンプ先ラベル名
+        from name in quotedValue.XOr(literalValue)
+        // 引数
         from parameters in (
             from _ in Parse.WhiteSpace.Except(Parse.Char('\n')).AtLeastOnce().Optional()
             from param in quotedValue.XOr(literalValue)
             select param
         ).XMany().Optional()
-        select new NodeCallFile(path, parameters.GetOrDefault());
+        select new NodeCall(name, parameters.GetOrDefault());
 
     /// <summary>
     /// 変数への値代入の構文
@@ -196,6 +202,41 @@ public static class WindowsBatchParser
         select new NodeIfStatement(cond, whenTrueStatements, whenFalseStatements.GetOrDefault());
 
     /// <summary>
+    /// FORの構文
+    /// </summary>
+    /// <example>
+    ///   FOR /F "delims= " %%i IN ('DATE /T') DO SET YMD=%%i
+    /// </example>
+    public static readonly Parser<NodeForFile> forFileRule = 
+        from keywordFor in Parse.IgnoreCase("FOR")
+        from _whitespace1 in Parse.WhiteSpace.Except(Parse.Char('\n')).AtLeastOnce()
+        from mode in Parse.IgnoreCase("/F")
+        from _whitespace2 in Parse.WhiteSpace.Except(Parse.Char('\n')).AtLeastOnce()
+        from option in (
+            from option in quotedValue
+            from _ in Parse.WhiteSpace.Except(Parse.Char('\n')).AtLeastOnce()
+            select option
+        ).Optional()
+        from parameter in Parse.Char('%').Repeat(2).Then(_ => Parse.Letter.Once()).Text()
+        from _whitespace4 in Parse.WhiteSpace.Except(Parse.Char('\n')).AtLeastOnce()
+        from keywordIn in Parse.IgnoreCase("IN")
+        from _whitespace5 in Parse.WhiteSpace.Except(Parse.Char('\n')).Many()
+        from lparen in Parse.Char('(')
+        from set in Parse.CharExcept(')').XMany().Text()
+        from rparen in Parse.Char(')')
+        from _whitespace6 in Parse.WhiteSpace.Except(Parse.Char('\n')).Many()
+        from keywordDo in Parse.IgnoreCase("DO")
+        from _whitespace7 in Parse.WhiteSpace.Except(Parse.Char('\n')).AtLeastOnce()
+        from statements in (
+            Parse.Ref(() => statementRule).Once()
+            .Or(from lparen in Parse.Char('(')
+                from statements in Parse.Ref(() => statementRule.XMany())
+                from rparen in Parse.Char(')')
+                select statements)
+        )
+        select new NodeForFile(option.GetOrDefault(), parameter, set, statements);
+
+    /// <summary>
     /// ステートメントの構文
     /// </summary>
     public static readonly Parser<IStatement> statementRule =
@@ -205,6 +246,7 @@ public static class WindowsBatchParser
             .Or(commentsRule.Token())
             .Or(labelRule.Token())
             .Or(ifStatementRule.Token())
+            .Or(forFileRule.Token())
         select statement;
 
     /// <summary>
@@ -214,7 +256,7 @@ public static class WindowsBatchParser
         from statement in 
             setVariableRule.Token<IStatement>()
             .Or(gotoRule.Token())
-            .Or(callFileRule.Token())
+            .Or(callRule.Token())
         select statement;
 
     /// <summary>
