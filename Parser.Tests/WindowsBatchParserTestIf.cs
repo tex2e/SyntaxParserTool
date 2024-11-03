@@ -71,6 +71,76 @@ public class UnitTestWindowsBatchParserIfStatement
     }
 
     [Fact]
+    public void ParseIfExist()
+    {
+        string input = $"""
+        IF EXIST c:\path\to\my.exe set flag=true
+        if exist "d:\path\to\Program Files\my.exe" set flag=true
+        """;
+        BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
+        var statements = result.Statements.ToArray();
+        Assert.True(statements.Length >= 2);
+        Assert.True(statements[0] is NodeIfStatement);
+        Assert.True(statements[1] is NodeIfStatement);
+
+        NodeIfStatement statement1 = (NodeIfStatement)statements[0];
+        NodeExists condition1 = (NodeExists)statement1.Condition;
+        Assert.Equal(@"c:\path\to\my.exe", condition1.Path);
+        // true statement
+        IStatement[] statements1TrueStatements = statement1.WhenTrueStatements.ToArray();
+        Assert.True(statements1TrueStatements.Length >= 1);
+        NodeSetVariable statement1_1 = (NodeSetVariable)statements1TrueStatements[0];
+        Assert.Equal("flag", statement1_1.Name);
+        Assert.Equal("true", statement1_1.Value);
+
+        NodeIfStatement statement2 = (NodeIfStatement)statements[1];
+        NodeExists condition2 = (NodeExists)statement2.Condition;
+        Assert.Equal(@"d:\path\to\Program Files\my.exe", condition2.Path);
+        // true statement
+        IStatement[] statements2TrueStatements = statement2.WhenTrueStatements.ToArray();
+        Assert.True(statements2TrueStatements.Length >= 1);
+        NodeSetVariable statement2_1 = (NodeSetVariable)statements2TrueStatements[0];
+        Assert.Equal("flag", statement2_1.Name);
+        Assert.Equal("true", statement2_1.Value);
+    }
+
+    [Fact]
+    public void ParseIfNotExist()
+    {
+        string input = $"""
+        IF NOT EXIST c:\path\to\my.exe set flag=true
+        if not exist "d:\path\to\Program Files\my.exe" set flag=true
+        """;
+        BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
+        var statements = result.Statements.ToArray();
+        Assert.True(statements.Length >= 2);
+        Assert.True(statements[0] is NodeIfStatement);
+        Assert.True(statements[1] is NodeIfStatement);
+
+        NodeIfStatement statement1 = (NodeIfStatement)statements[0];
+        NodeNegatedCondition condition1 = (NodeNegatedCondition)statement1.Condition;
+        NodeExists condition1_1 = (NodeExists)condition1.Condition;
+        Assert.Equal(@"c:\path\to\my.exe", condition1_1.Path);
+        // true statement
+        IStatement[] statements1TrueStatements = statement1.WhenTrueStatements.ToArray();
+        Assert.True(statements1TrueStatements.Length >= 1);
+        NodeSetVariable statement1_1 = (NodeSetVariable)statements1TrueStatements[0];
+        Assert.Equal("flag", statement1_1.Name);
+        Assert.Equal("true", statement1_1.Value);
+
+        NodeIfStatement statement2 = (NodeIfStatement)statements[1];
+        NodeNegatedCondition condition2 = (NodeNegatedCondition)statement2.Condition;
+        NodeExists condition2_1 = (NodeExists)condition2.Condition;
+        Assert.Equal(@"d:\path\to\Program Files\my.exe", condition2_1.Path);
+        // true statement
+        IStatement[] statements2TrueStatements = statement2.WhenTrueStatements.ToArray();
+        Assert.True(statements2TrueStatements.Length >= 1);
+        NodeSetVariable statement2_1 = (NodeSetVariable)statements2TrueStatements[0];
+        Assert.Equal("flag", statement2_1.Name);
+        Assert.Equal("true", statement2_1.Value);
+    }
+
+    [Fact]
     public void ParseIfBlock()
     {
         string input = """

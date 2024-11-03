@@ -98,26 +98,46 @@ public class UnitTestWindowsBatchParser
     }
 
     [Fact]
-    public void ParseCall()
+    public void ParseCallFile()
     {
         string input = """
         call %BIN_PATH%\MyProcess.cmd
-        call %BIN_PATH%\MyProcess2.cmd %_MyVariable% 1234
+        """;
+        BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
+        var statements = result.Statements.ToArray();
+        Assert.Single(statements);
+        Assert.True(statements[0] is NodeCallFile);
+        NodeCallFile statement1 = (NodeCallFile)statements[0];
+        Assert.Equal(@"%BIN_PATH%\MyProcess.cmd", statement1.Path);
+        Assert.Empty(statement1.Parameters.ToArray());
+    }
+
+    [Fact]
+    public void ParseCallFileWithParams()
+    {
+        string input = """
+        call %BIN_PATH%\MyProcess1.cmd %_MyVariable% 1234
+        call %BIN_PATH%\MyProcess2.cmd "%YYYY%/%MM%/%DD% %hh%:%mm%:%ss%" 1234 "test text"
         """;
         BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
         var statements = result.Statements.ToArray();
         Assert.Equal(2, statements.Length);
         Assert.True(statements[0] is NodeCallFile);
         Assert.True(statements[1] is NodeCallFile);
+
         NodeCallFile statement1 = (NodeCallFile)statements[0];
-        Assert.Equal(@"%BIN_PATH%\MyProcess.cmd", statement1.Path);
-        Assert.Empty(statement1.Parameters.ToArray());
+        Assert.Equal(@"%BIN_PATH%\MyProcess1.cmd", statement1.Path);
+        var statement1Parameters = statement1.Parameters.ToArray();
+        Assert.Equal(2, statement1Parameters.Length);
+        Assert.Equal("%_MyVariable%", statement1Parameters[0]);
+        Assert.Equal("1234", statement1Parameters[1]);
 
         NodeCallFile statement2 = (NodeCallFile)statements[1];
         Assert.Equal(@"%BIN_PATH%\MyProcess2.cmd", statement2.Path);
         var statement2Parameters = statement2.Parameters.ToArray();
-        Assert.Equal(2, statement2Parameters.Length);
-        Assert.Equal("%_MyVariable%", statement2Parameters[0]);
+        Assert.Equal(3, statement2Parameters.Length);
+        Assert.Equal("%YYYY%/%MM%/%DD% %hh%:%mm%:%ss%", statement2Parameters[0]);
         Assert.Equal("1234", statement2Parameters[1]);
+        Assert.Equal("test text", statement2Parameters[2]);
     }
 }

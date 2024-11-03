@@ -9,7 +9,7 @@ public interface ICondition {}
 /// IF文の否定条件
 /// </summary>
 /// <param name="condition">条件文</param>
-public class NodeNegatedCondition(ICondition condition)
+public class NodeNegatedCondition(ICondition condition) : ICondition
 {
     public ICondition Condition => condition;
 

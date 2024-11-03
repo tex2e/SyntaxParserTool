@@ -137,7 +137,7 @@ public static class WindowsBatchParser
     ///   IF EXIST C:\path\to\file.txt
     /// </example>
     public static readonly Parser<ICondition> existsRule =
-        from keywordExists in Parse.String("EXIST").Token()
+        from keywordExists in Parse.IgnoreCase("EXIST").Token()
         from path in quotedValue.XOr(literalValue)
         select new NodeExists(path);
 
@@ -157,7 +157,7 @@ public static class WindowsBatchParser
         from not in Parse.IgnoreCase("NOT")
         from _ in Parse.WhiteSpace.Except(Parse.Char('\n')).AtLeastOnce()
         from cond in conditionRule
-        select cond;
+        select new NodeNegatedCondition(cond);
 
     /// <summary>
     /// IFの構文
