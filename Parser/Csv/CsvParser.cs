@@ -1,6 +1,6 @@
 using Sprache;
 
-namespace SyntaxParserTool.Parser.Csv;
+namespace Parser.Csv;
 
 public class CsvParser
 {

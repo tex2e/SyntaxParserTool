@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Sprache;
 
-namespace SyntaxParserTool.Parser.Expr;
+namespace Parser.Expr;
 
 static class ExpressionParser
 {

@@ -2,7 +2,7 @@
 using System.Text;
 using Sprache;
 
-namespace SyntaxParserTool.Parser.Xml;
+namespace Parser.Xml;
 
 public class Document
 {

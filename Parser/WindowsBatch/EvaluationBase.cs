@@ -1,7 +1,7 @@
 
 using System.Text;
 
-namespace SyntaxParserTool.Parser.WindowsBatch;
+namespace Parser.WindowsBatch;
 
 public class BatchFile(IEnumerable<IStatement> statements)
 {

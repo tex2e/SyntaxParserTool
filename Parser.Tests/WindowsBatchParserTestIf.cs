@@ -1,4 +1,5 @@
-using SyntaxParserTool.Parser.WindowsBatch;
+
+using Parser.WindowsBatch;
 using Sprache;
 
 namespace Parser.Tests;

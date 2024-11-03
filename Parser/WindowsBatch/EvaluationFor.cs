@@ -1,7 +1,7 @@
 
 using System.CodeDom.Compiler;
 
-namespace SyntaxParserTool.Parser.WindowsBatch;
+namespace Parser.WindowsBatch;
 
 public interface IForInSet {}
 

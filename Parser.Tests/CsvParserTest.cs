@@ -1,4 +1,5 @@
-using SyntaxParserTool.Parser.Csv;
+
+using Parser.Csv;
 using Sprache;
 
 namespace Parser.Tests;

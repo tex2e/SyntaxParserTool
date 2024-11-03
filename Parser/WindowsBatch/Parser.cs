@@ -2,10 +2,9 @@
 // App-BatParser/lib/App/BatParser.pm at master · pablrod/App-BatParser
 // https://github.com/pablrod/App-BatParser/blob/master/lib/App/BatParser.pm
 
-using System.Text;
 using Sprache;
 
-namespace SyntaxParserTool.Parser.WindowsBatch;
+namespace Parser.WindowsBatch;
 
 public static class WindowsBatchParser
 {
