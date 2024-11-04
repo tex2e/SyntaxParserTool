@@ -15,3 +15,9 @@ dotnet add package System.Text.Encoding.CodePages
 ```
 dotnet run --project Parser --input InputFiles/TestFile.cmd --type bat --encode sjis
 ```
+
+### 単体テスト
+
+```
+dotnet test
+```
