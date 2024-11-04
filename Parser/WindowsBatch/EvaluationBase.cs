@@ -1,30 +1,51 @@
 
+using System.CodeDom.Compiler;
 using System.Text;
 
 namespace Parser.WindowsBatch;
 
-public class BatchFile(IEnumerable<IStatement> statements)
+public interface INode
+{
+    public abstract string ToString();
+    public abstract void Write(IndentedTextWriter indentWriter);
+}
+
+
+public class BatchFile(IEnumerable<IStatement> statements) : INode
 {
     public IEnumerable<IStatement> Statements => statements;
 
+    /// <summary>
+    /// 現在のオブジェクトを表す文字列を返す
+    /// </summary>
+    /// <returns>文字列</returns>
     public override string ToString()
     {
-        var sb = new StringBuilder();
+        using var textWriter = new StringWriter();
+        using var indentWriter = new IndentedTextWriter(textWriter);
+        Write(indentWriter);
+        return textWriter.ToString() ?? "";
+    }
+
+    /// <summary>
+    /// インデント調整ありで文字列を出力する
+    /// </summary>
+    /// <param name="indentWriter"></param>
+    public void Write(IndentedTextWriter indentWriter)
+    {
         if (statements is not null)
         {
             foreach (var statement in statements)
             {
-                sb.AppendLine(statement.ToString());
+                statement.Write(indentWriter);
+                indentWriter.WriteLine();
             }
         }
-        return sb.ToString();
     }
 }
 
-public interface IStatement
-{
-    public abstract string ToString();
-}
+public interface IStatement : INode
+{}
 
 /// <summary>
 /// コメント
@@ -37,6 +58,11 @@ public class NodeComment(string text) : IStatement
     public override string ToString()
     {
         return $"<rem text={{{text}}}>";
+    }
+
+    public void Write(IndentedTextWriter indentWriter)
+    {
+        indentWriter.Write(ToString());
     }
 }
 
@@ -51,6 +77,11 @@ public class NodeLabel(string name) : IStatement
     public override string ToString()
     {
         return $"<label name={{{name}}}>";
+    }
+
+    public void Write(IndentedTextWriter indentWriter)
+    {
+        indentWriter.Write(ToString());
     }
 }
 
@@ -68,6 +99,11 @@ public class NodeSetVariable(string name, string value) : IStatement
     {
         return $"<setvariable name={{{name}}} value={{{value}}}";
     }
+
+    public void Write(IndentedTextWriter indentWriter)
+    {
+        indentWriter.Write(ToString());
+    }
 }
 
 /// <summary>
@@ -83,6 +119,11 @@ public class NodeEcho(string message, Boolean escapeMode = false) : IStatement
     {
         return $"<echo message={{{message}}}>";
     }
+
+    public void Write(IndentedTextWriter indentWriter)
+    {
+        indentWriter.Write(ToString());
+    }
 }
 
 /// <summary>
@@ -96,6 +137,11 @@ public class NodeGoto(string name) : IStatement
     public override string ToString()
     {
         return $"<goto name={{{name}}}>";
+    }
+
+    public void Write(IndentedTextWriter indentWriter)
+    {
+        indentWriter.Write(ToString());
     }
 }
 
@@ -116,6 +162,11 @@ public class NodeCall(string name, IEnumerable<string> parameters) : IStatement
             sb.Append(string.Join(",", parameters));
         sb.Append($"}}>");
         return sb.ToString();
+    }
+
+    public void Write(IndentedTextWriter indentWriter)
+    {
+        indentWriter.Write(ToString());
     }
 }
 

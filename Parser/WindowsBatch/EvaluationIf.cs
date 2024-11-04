@@ -3,7 +3,8 @@ using System.CodeDom.Compiler;
 
 namespace Parser.WindowsBatch;
 
-public interface ICondition {}
+public interface ICondition : INode
+{}
 
 /// <summary>
 /// IF文の否定条件
@@ -16,6 +17,11 @@ public class NodeNegatedCondition(ICondition condition) : ICondition
     public override string ToString()
     {
         return $"<not {{{condition}}}>";
+    }
+
+    public void Write(IndentedTextWriter indentWriter)
+    {
+        indentWriter.Write(ToString());
     }
 }
 
@@ -30,6 +36,11 @@ public class NodeExists(string path) : ICondition
     public override string ToString()
     {
         return $"<exists path={{{path}}}>";
+    }
+
+    public void Write(IndentedTextWriter indentWriter)
+    {
+        indentWriter.Write(ToString());
     }
 }
 
@@ -52,6 +63,11 @@ public class NodeComparison(
     {
         return $"<comparison left={{{leftLiteral}}} ope={{{ope}}} right={{{rightLiteral}}}>";
     }
+
+    public void Write(IndentedTextWriter indentWriter)
+    {
+        indentWriter.Write(ToString());
+    }
 }
 
 /// <summary>
@@ -71,26 +87,33 @@ public class NodeIfStatement(
 
     public override string ToString()
     {
-        using var output = new StringWriter();
-        using var writer = new IndentedTextWriter(output);
-        writer.WriteLine($"<if condition={{{condition}}} whenTrueStatements={{");
-        writer.Indent++;
+        using var textWriter = new StringWriter();
+        using var indentWriter = new IndentedTextWriter(textWriter);
+        Write(indentWriter);
+        return textWriter.ToString();
+    }
+
+    public void Write(IndentedTextWriter indentWriter)
+    {
+        indentWriter.WriteLine($"<if condition={{{condition}}} whenTrue={{");
+        indentWriter.Indent++;
         foreach (var statement in whenTrueStatements) {
-            writer.WriteLine(statement.ToString());
+            indentWriter.Write(statement.ToString());
+            indentWriter.WriteLine();
         }
-        writer.Indent--;
-        writer.Write("}}");
+        indentWriter.Indent--;
+        indentWriter.Write("}}");
         if (whenFalseStatements is not null)
         {
-            writer.WriteLine("whenFalseStatements={{");
-            writer.Indent++;
+            indentWriter.WriteLine(" whenFalse={{");
+            indentWriter.Indent++;
             foreach (var statement in whenFalseStatements) {
-                writer.WriteLine(statement.ToString());
+                statement.Write(indentWriter);
+                indentWriter.WriteLine();
             }
-            writer.Indent--;
-            writer.Write("}}");
+            indentWriter.Indent--;
+            indentWriter.Write("}}");
         }
-        writer.WriteLine($">");
-        return output.ToString();
+        indentWriter.Write($">");
     }
 }

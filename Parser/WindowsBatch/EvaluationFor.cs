@@ -18,15 +18,21 @@ public class NodeForFile(
 
     public override string ToString()
     {
-        using var output = new StringWriter();
-        using var writer = new IndentedTextWriter(output);
-        writer.WriteLine($"<for option={{{option}}} parameter={{{parameter}}} set={{{set}}} statements={{");
-        writer.Indent++;
+        using var textWriter = new StringWriter();
+        using var indentWriter = new IndentedTextWriter(textWriter);
+        Write(indentWriter);
+        return textWriter.ToString();
+    }
+
+    public void Write(IndentedTextWriter indentWriter)
+    {
+        indentWriter.WriteLine($"<for option={{{option}}} parameter={{{parameter}}} set={{{set}}} statements={{");
+        indentWriter.Indent++;
         foreach (var statement in statements) {
-            writer.WriteLine(statement.ToString());
+            statement.Write(indentWriter);
+            indentWriter.WriteLine();
         }
-        writer.Indent--;
-        writer.WriteLine($"}}>");
-        return output.ToString();
+        indentWriter.Indent--;
+        indentWriter.Write($"}}>");
     }
 }
