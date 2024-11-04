@@ -98,9 +98,9 @@ public static class WindowsBatchParser
         from _whitespace1 in spaceRule.XMany()
         from pipelineKeyword in
             Parse.String("&&")
-            .XOr(Parse.String("||"))
-            // .XOr(Parse.String("&"))
-            // .XOr(Parse.String("|"))
+            .Or(Parse.String("||"))
+            .Or(Parse.String("&"))
+            .Or(Parse.String("|"))
             .Text()
         from _whitespace2 in spaceRule.XMany()
         select pipelineKeyword;
@@ -307,9 +307,8 @@ public static class WindowsBatchParser
     public static readonly Parser<IStatement> controlStatementRule =
         from atmark in Parse.Char('@').Optional()  // コマンド名の出力を非表示にするための「@」
         from statement in
-            commentsRule
-            .Or<IStatement>(labelRule)
-            .Or(ifStatementRule)
+            labelRule
+            .Or<IStatement>(ifStatementRule)
             .Or(forFileRule)
         select statement;
 
@@ -318,9 +317,10 @@ public static class WindowsBatchParser
     /// </summary>
     public static readonly Parser<IStatement> execStatementRule =
         from atmark in Parse.Char('@').Optional()  // コマンド名の出力を非表示にするための「@」
-        from statement in 
-            setVariableRule
-            .Or<IStatement>(echoRule)
+        from statement in
+            commentsRule
+            .Or<IStatement>(setVariableRule)
+            .Or(echoRule)
             .Or(gotoRule)
             .Or(callRule)
         select statement;
