@@ -9,7 +9,7 @@ public class UnitTestWindowsBatchParserForStatement
     [Fact]
     public void Truth()
     {
-        Assert.Equal("1", "1");
+        Assert.Equal(2, 1+1);
     }
 
     [Fact]

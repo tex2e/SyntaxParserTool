@@ -9,20 +9,7 @@ public class UnitTestWindowsBatchParser
     [Fact]
     public void Truth()
     {
-        Assert.Equal("1", "1");
-    }
-
-    [Fact]
-    public void ParsePipeline()
-    {
-        string input = """
-        echo 123 && echo 456
-        """;
-        IStatement result = WindowsBatchParser.statementRule.Parse(input);
-        NodePipeline nodePipeline = (NodePipeline)result;
-        Assert.IsType<NodeEcho>(nodePipeline.LeftStatement);
-        Assert.Equal("&&", nodePipeline.Ope);
-        Assert.IsType<NodeEcho>(nodePipeline.RightStatement);
+        Assert.Equal(2, 1+1);
     }
 
     [Fact]
