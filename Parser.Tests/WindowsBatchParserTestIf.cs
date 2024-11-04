@@ -12,11 +12,15 @@ public class UnitTestWindowsBatchParserIfStatement
         Assert.Equal("1", "1");
     }
 
-    [Fact]
-    public void ParseIfCompareString()
+    [Theory]
+    [InlineData("\"%TEST%\" == \"1\"", "\"%TEST%\"", "\"1\"")]
+    [InlineData("\"%TEST%\"==\"1\"",   "\"%TEST%\"", "\"1\"")]
+    [InlineData("{=%TEST%=}=={=1=}", "{=%TEST%=}", "{=1=}")]
+    public void ParseIfCompareString(string inputComparison, string expectedLeft, string expectedRight)
     {
-        string input = """
-        if "%TEST%" == "1" set flag=true
+        // if "%TEST%" == "1" set flag=true
+        string input = $"""
+        if {inputComparison} set flag=true
         """;
         BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
         var statements = result.Statements.ToArray();
@@ -24,9 +28,9 @@ public class UnitTestWindowsBatchParserIfStatement
         Assert.IsType<NodeIfStatement>(statements[0]);
         NodeIfStatement statement1 = (NodeIfStatement)statements[0];
         NodeComparison condition1 = (NodeComparison)statement1.Condition;
-        Assert.Equal("\"%TEST%\"", condition1.LeftLiteral);
+        Assert.Equal(expectedLeft, condition1.LeftLiteral);
         Assert.Equal("==", condition1.Ope);
-        Assert.Equal("\"1\"", condition1.RightLiteral);
+        Assert.Equal(expectedRight, condition1.RightLiteral);
         // true statement
         IStatement[] trueStatements = statement1.WhenTrueStatements.ToArray();
         Assert.Single(trueStatements);

@@ -129,23 +129,35 @@ public static class WindowsBatchParser
         select new NodeSetVariable(name, value);
 
     /// <summary>
-    /// IFの比較の構文
+    /// IFの数値比較の構文
+    /// </summary>
+    /// <example>
+    ///   IF %VAR1% EQU 1
+    /// </example>
+    public static readonly Parser<ICondition> comparisonNumberRule =
+        from left in Parse.CharExcept(char.IsWhiteSpace, "leftLiteral").XMany().Text().Token()
+        from ope in
+            Parse.IgnoreCase("EQU")
+            .Or(Parse.IgnoreCase("NEQ"))
+            .Or(Parse.IgnoreCase("GTR"))
+            .Or(Parse.IgnoreCase("LSS"))
+            .Or(Parse.IgnoreCase("LEQ"))
+            .Or(Parse.IgnoreCase("GEQ"))
+            .Text()
+        from right in Parse.CharExcept(char.IsWhiteSpace, "rightLiteral").XMany().Text().Token()
+        select new NodeComparison(left, ope, right);
+
+    /// <summary>
+    /// IFの文字列比較の構文
     /// </summary>
     /// <example>
     ///   IF %VAR1% == 1
     /// </example>
-    public static readonly Parser<ICondition> comparisonRule =
-        from left in Parse.CharExcept(char.IsWhiteSpace, "leftLiteral").XMany().Text().Token()
-        from ope in Parse.String("==")
-                    .Or(Parse.IgnoreCase("EQU"))
-                    .Or(Parse.IgnoreCase("NEQ"))
-                    .Or(Parse.IgnoreCase("GTR"))
-                    .Or(Parse.IgnoreCase("LSS"))
-                    .Or(Parse.IgnoreCase("LEQ"))
-                    .Or(Parse.IgnoreCase("GEQ"))
-                    .Text()
+    public static readonly Parser<ICondition> comparisonStringRule =
+        from left in Parse.Regex(@"([^=]+|=(?=[^=]))+").Text().Named("leftLiteral")
+        from ope in Parse.String("==").Text()
         from right in Parse.CharExcept(char.IsWhiteSpace, "rightLiteral").XMany().Text().Token()
-        select new NodeComparison(left, ope, right);
+        select new NodeComparison(left.Trim(), ope, right.Trim());
 
     /// <summary>
     /// IF EXISTの構文
@@ -162,7 +174,9 @@ public static class WindowsBatchParser
     /// IFの条件文の構文
     /// </summary>
     public static readonly Parser<ICondition> conditionRule =
-        existsRule.XOr(comparisonRule);
+        existsRule
+        .XOr(comparisonNumberRule)
+        .Or(comparisonStringRule);
 
     /// <summary>
     /// IFの条件文の否定時の構文
