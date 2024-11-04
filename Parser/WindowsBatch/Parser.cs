@@ -80,6 +80,40 @@ public static class WindowsBatchParser
         from message in Parse.CharExcept("\r\n><|&").Many().Text()
         select new NodeEcho(message, escapeMode);
 
+    // public static readonly Parser<NodeRedirection> redirectionRule =
+    //     from statement in Parse.Ref(() => execStatementRule)
+    //     from redirectMode in
+    //         Parse.String(">>")
+    //         .XOr(Parse.String(">&"))
+    //         .XOr(Parse.String(">"))
+    //         .XOr(Parse.String("<&"))
+    //         .XOr(Parse.String("<"))
+    //         .Text()
+    //     from filename in
+    //         Parse.Number
+    //         .Or(quotedValue.XOr(literalValue))
+    //     select new NodeRedirection(statement, redirectMode, filename);
+
+    public static readonly Parser<string> pipelineKeywordRule =
+        from _whitespace1 in spaceRule.XMany()
+        from pipelineKeyword in
+            Parse.String("&&")
+            .XOr(Parse.String("||"))
+            // .XOr(Parse.String("&"))
+            // .XOr(Parse.String("|"))
+            .Text()
+        from _whitespace2 in spaceRule.XMany()
+        select pipelineKeyword;
+
+    public static readonly Parser<IStatement> pipelineRule =
+        Parse.ChainOperator(
+            pipelineKeywordRule,
+            Parse.Ref(() => execStatementRule.Token()),
+            // Parse.Ref(() => controlStatementRule.Token()).Or(Parse.Ref(() => execStatementRule.Token())),
+            (op, left, right) => new NodePipeline(left, op, right))
+        .Token();
+
+
     /// <summary>
     /// GOTO用のラベルの構文
     /// </summary>
@@ -214,7 +248,7 @@ public static class WindowsBatchParser
         from whenTrueStatements in (
             Parse.Ref(() => statementRule).Once()
             .Or(from lparen in Parse.Char('(')
-                from statements in Parse.Ref(() => statementRule.XMany())
+                from statements in Parse.Ref(() => statementRule.Many())
                 from rparen in Parse.Char(')')
                 select statements)
         )
@@ -224,7 +258,7 @@ public static class WindowsBatchParser
             from whenFalseStatements in (
                 Parse.Ref(() => statementRule).Once()
                 .Or(from lparen in Parse.Char('(')
-                    from statements in Parse.Ref(() => statementRule.XMany())
+                    from statements in Parse.Ref(() => statementRule.Many())
                     from rparen in Parse.Char(')')
                     select statements)
             )
@@ -261,40 +295,51 @@ public static class WindowsBatchParser
         from statements in (
             Parse.Ref(() => statementRule).Once()
             .Or(from lparen in Parse.Char('(')
-                from statements in Parse.Ref(() => statementRule.XMany())
+                from statements in Parse.Ref(() => statementRule.Many())
                 from rparen in Parse.Char(')')
                 select statements)
         )
         select new NodeForFile(option.GetOrDefault(), parameter, set, statements);
 
     /// <summary>
-    /// ステートメントの構文
+    /// ステートメント（制御構文）の構文
     /// </summary>
-    public static readonly Parser<IStatement> statementRule =
+    public static readonly Parser<IStatement> controlStatementRule =
         from atmark in Parse.Char('@').Optional()  // コマンド名の出力を非表示にするための「@」
         from statement in
-            execStatementRule
-            .Or(commentsRule.Token())
-            .Or(labelRule.Token())
-            .Or(ifStatementRule.Token())
-            .Or(forFileRule.Token())
+            commentsRule
+            .Or<IStatement>(labelRule)
+            .Or(ifStatementRule)
+            .Or(forFileRule)
         select statement;
 
     /// <summary>
-    /// ステートメント（コマンド実行系のみ）の構文
+    /// ステートメント（コマンドのみ）の構文
     /// </summary>
     public static readonly Parser<IStatement> execStatementRule =
+        from atmark in Parse.Char('@').Optional()  // コマンド名の出力を非表示にするための「@」
         from statement in 
-            setVariableRule.Token<IStatement>()
-            .Or(echoRule.Token())
-            .Or(gotoRule.Token())
-            .Or(callRule.Token())
+            setVariableRule
+            .Or<IStatement>(echoRule)
+            .Or(gotoRule)
+            .Or(callRule)
+        select statement;
+
+    /// <summary>
+    /// ステートメントの構文
+    /// </summary>
+    public static readonly Parser<IStatement> statementRule =
+        from statement in
+            controlStatementRule.Token()
+            // .Or(execStatementRule.Token())
+            .Or(pipelineRule.Token())
+            // pipelineRule
         select statement;
 
     /// <summary>
     /// バッチファイルの構文
     /// </summary>
     public static readonly Parser<BatchFile> BatchFile =
-        from statements in statementRule.XMany().End()
+        from statements in statementRule.Many().End()
         select new BatchFile(statements);
 }

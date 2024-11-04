@@ -13,6 +13,19 @@ public class UnitTestWindowsBatchParser
     }
 
     [Fact]
+    public void ParsePipeline()
+    {
+        string input = """
+        echo 123 && echo 456
+        """;
+        IStatement result = WindowsBatchParser.statementRule.Parse(input);
+        NodePipeline nodePipeline = (NodePipeline)result;
+        Assert.IsType<NodeEcho>(nodePipeline.LeftStatement);
+        Assert.Equal("&&", nodePipeline.Ope);
+        Assert.IsType<NodeEcho>(nodePipeline.RightStatement);
+    }
+
+    [Fact]
     public void ParseComment()
     {
         string input = """
@@ -22,8 +35,9 @@ public class UnitTestWindowsBatchParser
         BatchFile result = WindowsBatchParser.BatchFile.Parse(input);
         var statements = result.Statements.ToArray();
         Assert.Single(statements);
-        Assert.IsType<NodeComment>(statements[0]);
-        Assert.Equal("Test Comment\nコメントテスト", ((NodeComment)statements[0]).Text);
+        var target1 = statements[0];
+        Assert.IsType<NodeComment>(target1);
+        Assert.Equal("Test Comment\nコメントテスト", ((NodeComment)target1).Text);
     }
 
     [Fact]
