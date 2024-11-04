@@ -9,6 +9,12 @@ namespace Parser.WindowsBatch;
 public static class WindowsBatchParser
 {
     /// <summary>
+    /// 改行以外の空白
+    /// </summary>
+    public static readonly Parser<char> spaceRule =
+        Parse.WhiteSpace.Except(Parse.Char('\r')).Except(Parse.Char('\n'));
+
+    /// <summary>
     /// 識別子の構文
     /// </summary>
     public static readonly Parser<string> identifierRule =
@@ -45,7 +51,7 @@ public static class WindowsBatchParser
     /// </example>
     public static readonly Parser<string> commentRule =
         from directive in Parse.IgnoreCase("REM").Text()
-        from spaces in Parse.WhiteSpace.Except(Parse.Char('\n'))
+        from spaces in spaceRule
         from comment in Parse.CharExcept("\r\n").Many().Text()
         from newline in Parse.LineTerminator
         select comment;
@@ -70,7 +76,7 @@ public static class WindowsBatchParser
         from escapeMode in
             Parse.Char(':').Return(true)
             .XOr(Parse.Char('.').Return(false))
-            .XOr(Parse.WhiteSpace.Except(Parse.Char('\n')).AtLeastOnce().Return(false))
+            .XOr(spaceRule.AtLeastOnce().Return(false))
         from message in Parse.CharExcept("\r\n><|&").Many().Text()
         select new NodeEcho(message, escapeMode);
 
@@ -90,7 +96,7 @@ public static class WindowsBatchParser
     /// </summary>
     public static readonly Parser<NodeGoto> gotoRule =
         from keywordGoto in Parse.IgnoreCase("GOTO")
-        from _ in Parse.WhiteSpace.Except(Parse.Char('\n')).AtLeastOnce()
+        from _ in spaceRule.AtLeastOnce()
         from label in identifierRule
         select new NodeGoto(label);
 
@@ -103,12 +109,12 @@ public static class WindowsBatchParser
     /// </example>
     public static readonly Parser<NodeCall> callRule =
         from keywordCall in Parse.IgnoreCase("CALL")
-        from _whitespace1 in Parse.WhiteSpace.Except(Parse.Char('\n')).AtLeastOnce()
+        from _ in spaceRule.AtLeastOnce()
         // CMDファイル名 or ジャンプ先ラベル名
         from name in quotedValue.XOr(literalValue)
         // 引数
         from parameters in (
-            from _ in Parse.WhiteSpace.Except(Parse.Char('\n')).AtLeastOnce().Optional()
+            from _ in spaceRule.AtLeastOnce().Optional()
             from param in quotedValue.XOr(literalValue)
             select param
         ).XMany().Optional()
@@ -122,7 +128,7 @@ public static class WindowsBatchParser
     /// </example>
     public static readonly Parser<NodeSetVariable> setVariableRule =
         from set in Parse.IgnoreCase("SET")
-        from _ in Parse.WhiteSpace.Except(Parse.Char('\n')).AtLeastOnce()
+        from _ in spaceRule.AtLeastOnce()
         from name in identifierRule
         from eq in Parse.Char('=')
         from value in Parse.CharExcept("\r\n").Many().Text()
@@ -186,7 +192,7 @@ public static class WindowsBatchParser
     /// </example>
     public static readonly Parser<ICondition> notConditionRule =
         from not in Parse.IgnoreCase("NOT")
-        from _ in Parse.WhiteSpace.Except(Parse.Char('\n')).AtLeastOnce()
+        from _ in spaceRule.AtLeastOnce()
         from cond in conditionRule
         select new NodeNegatedCondition(cond);
 
@@ -234,24 +240,24 @@ public static class WindowsBatchParser
     /// </example>
     public static readonly Parser<NodeForFile> forFileRule = 
         from keywordFor in Parse.IgnoreCase("FOR")
-        from _whitespace1 in Parse.WhiteSpace.Except(Parse.Char('\n')).AtLeastOnce()
+        from _whitespace1 in spaceRule.AtLeastOnce()
         from mode in Parse.IgnoreCase("/F")
-        from _whitespace2 in Parse.WhiteSpace.Except(Parse.Char('\n')).AtLeastOnce()
+        from _whitespace2 in spaceRule.AtLeastOnce()
         from option in (
             from option in quotedValue
-            from _ in Parse.WhiteSpace.Except(Parse.Char('\n')).AtLeastOnce()
+            from _ in spaceRule.AtLeastOnce()
             select option
         ).Optional()
         from parameter in Parse.Char('%').Repeat(2).Then(_ => Parse.Letter.Once()).Text()
-        from _whitespace4 in Parse.WhiteSpace.Except(Parse.Char('\n')).AtLeastOnce()
+        from _whitespace4 in spaceRule.AtLeastOnce()
         from keywordIn in Parse.IgnoreCase("IN")
-        from _whitespace5 in Parse.WhiteSpace.Except(Parse.Char('\n')).Many()
+        from _whitespace5 in spaceRule.Many()
         from lparen in Parse.Char('(')
         from set in Parse.CharExcept(')').XMany().Text()
         from rparen in Parse.Char(')')
-        from _whitespace6 in Parse.WhiteSpace.Except(Parse.Char('\n')).Many()
+        from _whitespace6 in spaceRule.Many()
         from keywordDo in Parse.IgnoreCase("DO")
-        from _whitespace7 in Parse.WhiteSpace.Except(Parse.Char('\n')).AtLeastOnce()
+        from _whitespace7 in spaceRule.AtLeastOnce()
         from statements in (
             Parse.Ref(() => statementRule).Once()
             .Or(from lparen in Parse.Char('(')

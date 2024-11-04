@@ -112,7 +112,8 @@ public class NodeCall(string name, IEnumerable<string> parameters) : IStatement
     {
         var sb = new StringBuilder();
         sb.Append($"<callfile name={{{name}}} parameters={{");
-        sb.Append(string.Join(" ", parameters));
+        if (parameters is not null)
+            sb.Append(string.Join(",", parameters));
         sb.Append($"}}>");
         return sb.ToString();
     }
