@@ -31,3 +31,14 @@ public class NodePipeline(IStatement leftStatement, string ope, IStatement right
         indentWriter.Write("}}>");
     }
 }
+
+public class Redirection(string mode, string filename)
+{
+    public string Mode => mode;
+    public string Filename => filename;
+
+    public override string ToString()
+    {
+        return $"<redirection mode={{{mode}}} filename={{{filename}}}>";
+    }
+}

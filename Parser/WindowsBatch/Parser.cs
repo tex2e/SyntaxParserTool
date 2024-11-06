@@ -2,6 +2,7 @@
 // App-BatParser/lib/App/BatParser.pm at master · pablrod/App-BatParser
 // https://github.com/pablrod/App-BatParser/blob/master/lib/App/BatParser.pm
 
+using System.Text.RegularExpressions;
 using Sprache;
 
 namespace Parser.WindowsBatch;
@@ -69,6 +70,33 @@ public static class WindowsBatchParser
         select new NodeComment(string.Join("\n", comments));
 
     /// <summary>
+    /// リダイレクト
+    /// </summary>
+    public static readonly Parser<Redirection> redirectionRule =
+        from redirectionHandles in (
+            Parse.Char('0')
+            .XOr(Parse.Char('1'))
+            .XOr(Parse.Char('2'))
+            .Once().Text()
+        ).Optional()
+        from redirectMode in
+            Parse.String(">>")
+            .Or(Parse.String(">&"))
+            .Or(Parse.String(">"))
+            .Or(Parse.String("<&"))
+            .Or(Parse.String("<"))
+            .Text()
+        from _ in spaceRule.XMany()
+        from filename in (
+            Parse.Number
+            .Or(quotedValue.XOr(literalValue))
+        )
+        select new Redirection(
+            (redirectionHandles.GetOrDefault() ?? "") + redirectMode,
+            filename
+        );
+
+    /// <summary>
     /// ECHOコマンド
     /// </summary>
     public static readonly Parser<NodeEcho> echoRule =
@@ -77,22 +105,12 @@ public static class WindowsBatchParser
             Parse.Char(':').Return(true)
             .XOr(Parse.Char('.').Return(false))
             .XOr(spaceRule.AtLeastOnce().Return(false))
-        from message in Parse.CharExcept("\r\n><|&").Many().Text()
-        select new NodeEcho(message, escapeMode);
-
-    // public static readonly Parser<NodeRedirection> redirectionRule =
-    //     from statement in Parse.Ref(() => execStatementRule)
-    //     from redirectMode in
-    //         Parse.String(">>")
-    //         .XOr(Parse.String(">&"))
-    //         .XOr(Parse.String(">"))
-    //         .XOr(Parse.String("<&"))
-    //         .XOr(Parse.String("<"))
-    //         .Text()
-    //     from filename in
-    //         Parse.Number
-    //         .Or(quotedValue.XOr(literalValue))
-    //     select new NodeRedirection(statement, redirectMode, filename);
+        // メッセージ
+        //   注意：リダイレクトの 1> が存在するときに数字の1の部分を食べないように正規表現を作る
+        from message in Parse.Regex(@"(?:[012]+(?!>)|[^\r\n><|&012]*)*")
+        // リダイレクト
+        from redirect in redirectionRule.Optional()
+        select new NodeEcho(message, escapeMode, redirect.GetOrDefault());
 
     public static readonly Parser<string> pipelineKeywordRule =
         from _whitespace1 in spaceRule.XMany()

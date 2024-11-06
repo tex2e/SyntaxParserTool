@@ -102,17 +102,17 @@ public class NodeIfStatement(
             indentWriter.WriteLine();
         }
         indentWriter.Indent--;
-        indentWriter.Write("}}");
+        indentWriter.Write($"}}");
         if (whenFalseStatements is not null)
         {
-            indentWriter.WriteLine(" whenFalse={{");
+            indentWriter.WriteLine($" whenFalse={{");
             indentWriter.Indent++;
             foreach (var statement in whenFalseStatements) {
                 statement.Write(indentWriter);
                 indentWriter.WriteLine();
             }
             indentWriter.Indent--;
-            indentWriter.Write("}}");
+            indentWriter.Write($"}}");
         }
         indentWriter.Write($">");
     }
