@@ -74,9 +74,7 @@ public static class WindowsBatchParser
     /// </summary>
     public static readonly Parser<Redirection> redirectionRule =
         from redirectionHandles in (
-            Parse.Char('0')
-            .XOr(Parse.Char('1'))
-            .XOr(Parse.Char('2'))
+            Parse.Chars('0', '1', '2')
             .Once().Text()
         ).Optional()
         from redirectMode in
