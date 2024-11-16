@@ -123,8 +123,10 @@ public static class WindowsBatchParser
     /// </summary>
     public static readonly Parser<NodeAny> anyRule =
         // コマンド
-        //   注意：リダイレクトの 1> が存在するときに数字の1の部分を食べないように正規表現を作る
-        from command in Parse.Regex(@"(?:[012]+(?!>)|[^\r\n><|&012]*)*")
+        //   注意点：
+        //     * リダイレクトの 1> が存在するときに数字の1の部分を食べないように正規表現を作る
+        //     * 行頭が ( か ) のときは、コマンドとして解釈しないようにする（ifやfor）
+        from command in Parse.Regex(@"^[^()](?:[012]+(?!>)|[^\r\n><|&012]*)*")
         // リダイレクト
         from redirect in redirectionsRule.Optional()
         select new NodeAny(command, redirect.GetOrDefault());
@@ -362,7 +364,7 @@ public static class WindowsBatchParser
             .Or(echoRule)
             .Or(gotoRule)
             .Or(callRule)
-            // .Or(anyRule)
+            .Or(anyRule)
         select statement;
 
     /// <summary>
