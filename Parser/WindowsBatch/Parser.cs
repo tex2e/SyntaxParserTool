@@ -105,6 +105,7 @@ public static class WindowsBatchParser
     /// <summary>
     /// ECHOコマンド
     /// </summary>
+    /// <seealso cref="https://ss64.com/nt/echo.html"/>
     public static readonly Parser<NodeEcho> echoRule =
         from keywordEcho in Parse.IgnoreCase("ECHO")
         from escapeMode in
@@ -135,19 +136,20 @@ public static class WindowsBatchParser
     /// パイプラインの記号
     /// </summary>
     public static readonly Parser<string> pipelineKeywordRule =
-        from _whitespace1 in spaceRule.XMany()
+        from _1 in spaceRule.XMany()
         from pipelineKeyword in
             Parse.String("&&")
             .Or(Parse.String("||"))
             .Or(Parse.String("&"))
             .Or(Parse.String("|"))
             .Text()
-        from _whitespace2 in spaceRule.XMany()
+        from _2 in spaceRule.XMany()
         select pipelineKeyword;
 
     /// <summary>
     /// パイプラインの構文
     /// </summary>
+    /// <seealso cref="https://ss64.com/nt/syntax-redirection.html"/>
     public static readonly Parser<IStatement> pipelineRule =
         Parse.ChainOperator(
             pipelineKeywordRule,
@@ -215,6 +217,7 @@ public static class WindowsBatchParser
     /// <example>
     ///   IF %VAR1% EQU 1
     /// </example>
+    /// <seealso cref="https://ss64.com/nt/if.html"/>
     public static readonly Parser<ICondition> comparisonNumberRule =
         from left in Parse.CharExcept(char.IsWhiteSpace, "leftLiteral").XMany().Text().Token()
         from ope in
@@ -313,6 +316,7 @@ public static class WindowsBatchParser
     /// <example>
     ///   FOR /F "delims= " %%i IN ('DATE /T') DO SET YMD=%%i
     /// </example>
+    /// <seealso cref="https://ss64.com/nt/for.html"/>
     public static readonly Parser<NodeForFile> forFileRule = 
         from keywordFor in Parse.IgnoreCase("FOR")
         from _1 in spaceRule.AtLeastOnce()
