@@ -89,10 +89,18 @@ public static class WindowsBatchParser
             Parse.Number
             .Or(quotedValue.XOr(literalValue))
         )
+        from _2 in spaceRule.XMany()
         select new Redirection(
             (redirectionHandles.GetOrDefault() ?? "") + redirectMode,
             filename
         );
+
+    /// <summary>
+    /// リダイレクト（複数個）
+    /// </summary>
+    public static readonly Parser<IEnumerable<Redirection>> redirectionsRule =
+        from redirections in redirectionRule.XMany()
+        select redirections;
 
     /// <summary>
     /// ECHOコマンド
@@ -107,7 +115,7 @@ public static class WindowsBatchParser
         //   注意：リダイレクトの 1> が存在するときに数字の1の部分を食べないように正規表現を作る
         from message in Parse.Regex(@"(?:[012]+(?!>)|[^\r\n><|&012]*)*")
         // リダイレクト
-        from redirect in redirectionRule.Optional()
+        from redirect in redirectionsRule.Optional()
         select new NodeEcho(message, escapeMode, redirect.GetOrDefault());
 
     public static readonly Parser<string> pipelineKeywordRule =

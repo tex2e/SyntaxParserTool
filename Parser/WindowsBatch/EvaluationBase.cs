@@ -110,21 +110,25 @@ public class NodeSetVariable(string name, string value) : IStatement
 /// ECHO命令
 /// </summary>
 /// <param name="message"></param>
-public class NodeEcho(string message, bool escapeMode = false, Redirection? redirect = null) : IStatement
+public class NodeEcho(string message, bool escapeMode = false, IEnumerable<Redirection>? redirects = null) : IStatement
 {
     public string Message => message;
     public bool EscapeMode => escapeMode;
-    public Redirection? Redirect => redirect;
+    public IEnumerable<Redirection>? Redirects => redirects;
 
     public override string ToString()
     {
         var sb = new StringBuilder();
         sb.Append("<echo message={");
         sb.Append(message);
-        if (redirect is not null)
+        if (redirects is not null)
         {
             sb.Append("} redirect={");
-            sb.Append(redirect);
+            foreach (var redirect in redirects)
+            {
+                sb.Append(redirect);
+                sb.Append(" ");
+            }
         }
         sb.Append("}>");
         return sb.ToString();
