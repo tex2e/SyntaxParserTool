@@ -118,6 +118,20 @@ public static class WindowsBatchParser
         from redirect in redirectionsRule.Optional()
         select new NodeEcho(message, escapeMode, redirect.GetOrDefault());
 
+    /// <summary>
+    /// 任意のコマンド
+    /// </summary>
+    public static readonly Parser<NodeAny> anyRule =
+        // コマンド
+        //   注意：リダイレクトの 1> が存在するときに数字の1の部分を食べないように正規表現を作る
+        from command in Parse.Regex(@"(?:[012]+(?!>)|[^\r\n><|&012]*)*")
+        // リダイレクト
+        from redirect in redirectionsRule.Optional()
+        select new NodeAny(command, redirect.GetOrDefault());
+
+    /// <summary>
+    /// パイプラインの記号
+    /// </summary>
     public static readonly Parser<string> pipelineKeywordRule =
         from _whitespace1 in spaceRule.XMany()
         from pipelineKeyword in
@@ -129,14 +143,15 @@ public static class WindowsBatchParser
         from _whitespace2 in spaceRule.XMany()
         select pipelineKeyword;
 
+    /// <summary>
+    /// パイプラインの構文
+    /// </summary>
     public static readonly Parser<IStatement> pipelineRule =
         Parse.ChainOperator(
             pipelineKeywordRule,
             Parse.Ref(() => execStatementRule.Token()),
-            // Parse.Ref(() => controlStatementRule.Token()).Or(Parse.Ref(() => execStatementRule.Token())),
             (op, left, right) => new NodePipeline(left, op, right))
         .Token();
-
 
     /// <summary>
     /// GOTO用のラベルの構文
@@ -280,11 +295,11 @@ public static class WindowsBatchParser
         from whenFalseStatements in (
             from keywordElse in Parse.IgnoreCase("ELSE").Token()
             from whenFalseStatements in (
-                Parse.Ref(() => statementRule).Once()
-                .Or(from lparen in Parse.Char('(')
-                    from statements in Parse.Ref(() => statementRule.Many())
-                    from rparen in Parse.Char(')')
-                    select statements)
+                (from lparen in Parse.Char('(')
+                from statements in Parse.Ref(() => statementRule.Many())
+                from rparen in Parse.Char(')')
+                select statements)
+                .Or(Parse.Ref(() => statementRule).Once())
             )
             select whenFalseStatements
         ).Optional()
@@ -298,30 +313,30 @@ public static class WindowsBatchParser
     /// </example>
     public static readonly Parser<NodeForFile> forFileRule = 
         from keywordFor in Parse.IgnoreCase("FOR")
-        from _whitespace1 in spaceRule.AtLeastOnce()
+        from _1 in spaceRule.AtLeastOnce()
         from mode in Parse.IgnoreCase("/F")
-        from _whitespace2 in spaceRule.AtLeastOnce()
+        from _2 in spaceRule.AtLeastOnce()
         from option in (
             from option in quotedValue
             from _ in spaceRule.AtLeastOnce()
             select option
         ).Optional()
         from parameter in Parse.Char('%').Repeat(2).Then(_ => Parse.Letter.Once()).Text()
-        from _whitespace4 in spaceRule.AtLeastOnce()
+        from _4 in spaceRule.AtLeastOnce()
         from keywordIn in Parse.IgnoreCase("IN")
-        from _whitespace5 in spaceRule.Many()
+        from _5 in spaceRule.Many()
         from lparen in Parse.Char('(')
         from set in Parse.CharExcept(')').XMany().Text()
         from rparen in Parse.Char(')')
-        from _whitespace6 in spaceRule.Many()
+        from _6 in spaceRule.Many()
         from keywordDo in Parse.IgnoreCase("DO")
-        from _whitespace7 in spaceRule.AtLeastOnce()
+        from _7 in spaceRule.AtLeastOnce()
         from statements in (
-            Parse.Ref(() => statementRule).Once()
-            .Or(from lparen in Parse.Char('(')
-                from statements in Parse.Ref(() => statementRule.Many())
-                from rparen in Parse.Char(')')
-                select statements)
+            (from lparen in Parse.Char('(')
+            from statements in Parse.Ref(() => statementRule.Many())
+            from rparen in Parse.Char(')')
+            select statements)
+            .Or(Parse.Ref(() => statementRule).Once())
         )
         select new NodeForFile(option.GetOrDefault(), parameter, set, statements);
 
@@ -347,6 +362,7 @@ public static class WindowsBatchParser
             .Or(echoRule)
             .Or(gotoRule)
             .Or(callRule)
+            // .Or(anyRule)
         select statement;
 
     /// <summary>
@@ -355,9 +371,7 @@ public static class WindowsBatchParser
     public static readonly Parser<IStatement> statementRule =
         from statement in
             controlStatementRule.Token()
-            // .Or(execStatementRule.Token())
             .Or(pipelineRule.Token())
-            // pipelineRule
         select statement;
 
     /// <summary>

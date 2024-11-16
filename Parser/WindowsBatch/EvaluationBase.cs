@@ -107,40 +107,6 @@ public class NodeSetVariable(string name, string value) : IStatement
 }
 
 /// <summary>
-/// ECHO命令
-/// </summary>
-/// <param name="message"></param>
-public class NodeEcho(string message, bool escapeMode = false, IEnumerable<Redirection>? redirects = null) : IStatement
-{
-    public string Message => message;
-    public bool EscapeMode => escapeMode;
-    public IEnumerable<Redirection>? Redirects => redirects;
-
-    public override string ToString()
-    {
-        var sb = new StringBuilder();
-        sb.Append("<echo message={");
-        sb.Append(message);
-        if (redirects is not null)
-        {
-            sb.Append("} redirect={");
-            foreach (var redirect in redirects)
-            {
-                sb.Append(redirect);
-                sb.Append(" ");
-            }
-        }
-        sb.Append("}>");
-        return sb.ToString();
-    }
-
-    public void Write(IndentedTextWriter indentWriter)
-    {
-        indentWriter.Write(ToString());
-    }
-}
-
-/// <summary>
 /// GOTO文
 /// </summary>
 /// <param name="name">遷移先のラベル名</param>
@@ -175,6 +141,69 @@ public class NodeCall(string name, IEnumerable<string> parameters) : IStatement
         if (parameters is not null)
             sb.Append(string.Join(",", parameters));
         sb.Append($"}}>");
+        return sb.ToString();
+    }
+
+    public void Write(IndentedTextWriter indentWriter)
+    {
+        indentWriter.Write(ToString());
+    }
+}
+
+/// <summary>
+/// ECHO命令
+/// </summary>
+/// <param name="message"></param>
+public class NodeEcho(string message, bool escapeMode = false, IEnumerable<Redirection>? redirects = null) : IStatement
+{
+    public string Message => message;
+    public bool EscapeMode => escapeMode;
+    public IEnumerable<Redirection>? Redirects => redirects;
+
+    public override string ToString()
+    {
+        var sb = new StringBuilder();
+        sb.Append("<echo message={");
+        sb.Append(message);
+        if (redirects is not null)
+        {
+            sb.Append("} redirect={");
+            foreach (var redirect in redirects)
+            {
+                sb.Append(redirect);
+                sb.Append(" ");
+            }
+        }
+        sb.Append("}>");
+        return sb.ToString();
+    }
+
+    public void Write(IndentedTextWriter indentWriter)
+    {
+        indentWriter.Write(ToString());
+    }
+}
+
+public class NodeAny(string command, IEnumerable<Redirection>? redirects = null) : IStatement
+{
+    public string Command => command;
+    public IEnumerable<Redirection>? Redirects => redirects;
+
+    public override string ToString()
+    {
+        var sb = new StringBuilder();
+        sb.Append("<any command={");
+        sb.Append(command);
+        if (redirects is not null)
+        {
+            sb.Append("} redirect={");
+            foreach (var redirect in redirects)
+            {
+                sb.Append(redirect);
+                sb.Append(" ");
+            }
+        }
+        sb.Append("}>");
         return sb.ToString();
     }
 
